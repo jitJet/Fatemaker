@@ -1,0 +1,36 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 0
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "if extra.edition then"
+position = "before"
+payload = "sound = extra.sound or sound"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "cardarea.lua"
+pattern = "local stay_flipped = G.GAME and G.GAME.blind and G.GAME.blind:stay_flipped(self, card)"
+position = "after"
+payload = "stay_flipped = stay_flipped or (card.config.center == G.P_CENTERS.m_fm_blinded)"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = "if destroyed then"
+position = "before"
+payload = "if (scoring_hand[i].config.center == G.P_CENTERS.m_fm_volatile) or (scoring_hand[i].config.center == G.P_CENTERS.m_fm_shatter and scoring_hand[i].should_shatter) or (scoring_hand[i].config.center == G.P_CENTERS.m_fm_scorch and scoring_hand[i].ability.extra.stacks >= 3) or (scoring_hand[i].config.center == G.P_CENTERS.m_fm_unravel and scoring_hand[i].should_shatter) then destroyed = true; scoring_hand[i].should_shatter = scoring_hand[i].should_shatter or scoring_hand[i].config.center == G.P_CENTERS.m_fm_shatter end"
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = "cards_destroyed[i]:start_dissolve()"
+position = "before"
+payload = "if cards_destroyed[i].should_shatter then cards_destroyed[i]:shatter() return true end"
+match_indent = true
