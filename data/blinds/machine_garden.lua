@@ -41,52 +41,8 @@ SMODS.Blind{
     end,
 
     modify_hand = function(self, cards, poker_hands, text, mult, hand_chips)
-        -- First process gauges
-        local light_gained = 0
-        local dark_gained = 0
-
-        local found_pattern = false
-        local has_voltaic_cards = false
-
-        for i = 1, #cards - 4 do
-            if (cards[i].config.center == G.P_CENTERS.m_fm_powered_tether_light or 
-                cards[i].config.center == G.P_CENTERS.m_fm_powered_tether_dark) and
-            cards[i+1].ability.voltaic_overflow and
-            cards[i+2].ability.voltaic_overflow and
-            cards[i+3].ability.voltaic_overflow and
-            (cards[i+4].config.center == G.P_CENTERS.m_fm_powered_tether_light or 
-                cards[i+4].config.center == G.P_CENTERS.m_fm_powered_tether_dark) then
-                found_pattern = true
-                SMODS.Stickers.fm_voltaic_overflow:apply(_card, true)
-                break
-            end
-        end
-
-        -- Check if any Voltaic Overflow cards are being played
-        for _, card in ipairs(cards) do
-            if card.ability.voltaic_overflow then
-                has_voltaic_cards = true
-                break
-            end
-        end
-
-        -- If Voltaic cards present but pattern not found, detonate them
-        if has_voltaic_cards and not found_pattern then
-            for i, card in ipairs(cards) do
-                if card.ability.voltaic_overflow then
-                    -- Destroy adjacent cards
-                    if i > 1 then cards[i-1]:start_dissolve() end
-                    if i < #cards then cards[i+1]:start_dissolve() end
-                    card.ability.voltaic_overflow = nil
-                    
-                    SMODS.calculate_effect({
-                        message = "Detonated!",
-                        sound = "fm_detonate",
-                        colour = G.C.RED
-                    }, card)
-                end
-            end
-        end
+        light_gained = 0
+        dark_gained = 0
      
         for _, card in ipairs(cards) do
             -- Check suits first
@@ -108,7 +64,7 @@ SMODS.Blind{
                    card.config.center == G.P_CENTERS.m_fm_volatile or
                    card.config.center == G.P_CENTERS.m_fm_devour or
                    card.config.center == G.P_CENTERS.m_fm_overshield then
-                    light_gained = light_gained + 1
+                    light_gained = light_gained + 2
                 -- Dark cards bonus (Void, Stasis, Strand)
                 elseif card.config.center == G.P_CENTERS.m_fm_resonant or
                        card.config.center == G.P_CENTERS.m_fm_finalized or
@@ -119,11 +75,11 @@ SMODS.Blind{
                        card.config.center == G.P_CENTERS.m_fm_tangle or
                        card.config.center == G.P_CENTERS.m_fm_wovenmail or
                        card.config.center == G.P_CENTERS.m_fm_unravel then
-                        dark_gained = dark_gained + 1
+                        dark_gained = dark_gained + 2
                 -- Prismatic cards
                 elseif card.config.center == G.P_CENTERS.m_fm_transcendent then
-                    light_gained = light_gained + 2
-                    dark_gained = dark_gained + 2
+                    light_gained = light_gained + 3
+                    dark_gained = dark_gained + 3
                 end
             end
         end
@@ -157,7 +113,6 @@ SMODS.Blind{
             if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                 -- Set alignment on G.GAME.blind instead of self
                 G.GAME.blind.blind_alignment = math.random() < 0.5 and 'light' or 'dark'
-                print("Set blind alignment to: " .. G.GAME.blind.blind_alignment)
                 
                 -- Change blind icon
                 G.GAME.blind:juice_up()
@@ -199,6 +154,80 @@ SMODS.Blind{
             
             self.light_gauge = 0
             self.dark_gauge = 0
+        end
+
+        if #cards >= 5 then
+            for i = 1, #cards - 4 do
+                if (cards[i].config.center.key == "m_fm_powered_tether_light" or
+                    cards[i].config.center.key == "m_fm_powered_tether_dark") and
+                   cards[i+1].ability.fm_voltaic_overflow and
+                   cards[i+2].ability.fm_voltaic_overflow and
+                   cards[i+3].ability.fm_voltaic_overflow and
+                   (cards[i+4].config.center.key == "m_fm_powered_tether_light" or
+                    cards[i+4].config.center.key == "m_fm_powered_tether_dark") then
+                        G.E_MANAGER:add_event(Event({
+                            trigger = 'after',
+                            delay = 0.4,
+                            func = function()
+                                attention_text({
+                                    text = string.format("ENLIGHTENED"),
+                                    scale = 1.3,
+                                    hold = 10,
+                                    major = G.play,
+                                    backdrop_colour = G.C.WHITE
+                                })
+                                -- CHANGE THE SOUND LATER
+                                play_sound("fm_corrupted_wish_wish_granted")
+                                G.play:juice_up(0.1, 0.2)
+                                G.E_MANAGER:add_event(Event({
+                                    trigger = 'after',
+                                    delay = 0.15,
+                                    func = function()
+                                        for _, card in ipairs(G.hand.cards) do
+                                            if card.config.center.key == "m_fm_powered_tether_light" or
+                                               card.config.center.key == "m_fm_powered_tether_dark" then
+                                                card:set_ability(G.P_CENTERS.m_fm_unpowered_tether)
+                                                card:juice_up(0.1, 0.2)
+                                            end
+                                        end
+                                        G.GAME.blind:juice_up()
+                                        G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
+                                        G.GAME.blind_alignment = nil
+                                        return true
+                                    end
+                                }))
+                                return true
+                            end
+                        }))
+                    self.enlightened_hands = 4
+                    self.scoring_disabled = false
+                    break
+                end
+            end
+        end
+     
+        if self.enlightened_hands > 0 and not found_pattern then
+            self.enlightened_hands = self.enlightened_hands - 1
+            if self.enlightened_hands == 0 then
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.4,
+                    func = function()
+                        attention_text({
+                            text = string.format("ENLIGHTENED EXPIRED"),
+                            scale = 1.3,
+                            hold = 10,
+                            major = G.play,
+                            backdrop_colour = G.C.WHITE
+                        })
+                        -- CHANGE THE SOUND LATER
+                        play_sound("fm_corrupted_wish_wish_granted")
+                        G.play:juice_up(0.1, 0.2)
+                        return true
+                    end
+                }))
+                self.scoring_disabled = true
+            end
         end
      
         return mult, hand_chips, true
@@ -293,7 +322,90 @@ SMODS.Sticker {
     sets = {
         Joker = false
     },
-    pos = {x=0, y=0}
+    pos = {x=0, y=0},
+    calculate = function(self, card, context)
+        if card.area == G.hand and context.after then
+            local DETONATE_AMOUNT = 9
+            -- Check for correct pattern
+            local pattern_found = false
+            if #context.scoring_hand >= 5 then
+                for i = 1, #context.scoring_hand - 4 do
+                    if (context.scoring_hand[i].config.center.key == "m_fm_powered_tether_light" or
+                        context.scoring_hand[i].config.center.key == "m_fm_powered_tether_dark") and
+                        context.scoring_hand[i+1].ability.fm_voltaic_overflow and
+                        context.scoring_hand[i+2].ability.fm_voltaic_overflow and
+                        context.scoring_hand[i+3].ability.fm_voltaic_overflow and
+                        (context.scoring_hand[i+4].config.center.key == "m_fm_powered_tether_light" or
+                        context.scoring_hand[i+4].config.center.key == "m_fm_powered_tether_dark") then
+                        pattern_found = true
+                        break
+                    end
+                end
+            end
+
+            -- If any Voltaic cards played without correct pattern
+            local any_voltaic = false
+            for _, scoring_card in ipairs(context.scoring_hand) do
+                if scoring_card.ability.fm_voltaic_overflow then
+                    any_voltaic = true
+                    break
+                end
+            end
+
+            if any_voltaic and not pattern_found then
+                -- Reset tethers and blind
+                for _, hand_card in ipairs(G.hand.cards) do
+                    if hand_card.config.center.key == "m_fm_powered_tether_light" or
+                        hand_card.config.center.key == "m_fm_powered_tether_dark" then
+                        hand_card:set_ability(G.P_CENTERS.m_fm_unpowered_tether)
+                    end
+                end
+                for _, play_card in ipairs(G.play.cards) do
+                    if play_card.config.center.key == "m_fm_powered_tether_light" or
+                        play_card.config.center.key == "m_fm_powered_tether_dark" then
+                        play_card:set_ability(G.P_CENTERS.m_fm_unpowered_tether)
+                    end
+                end
+                G.GAME.blind:juice_up()
+                G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
+                G.GAME.blind.blind_alignment = nil
+
+                -- Remove Voltaic stickers
+                for _, hand_card in ipairs(G.hand.cards) do
+                    if hand_card.ability.fm_voltaic_overflow then
+                        SMODS.Stickers.fm_voltaic_overflow:apply(hand_card)
+                    end
+                end
+                for _, play_card in ipairs(G.play.cards) do
+                    if play_card.ability.fm_voltaic_overflow then
+                        SMODS.Stickers.fm_voltaic_overflow:apply(play_card)
+                    end
+                end
+
+                -- Destroy random cards
+                local destroyable_cards = {}
+                for _, hand_card in ipairs(G.hand.cards) do
+                    if hand_card.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
+                        hand_card.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
+                        hand_card.config.center ~= G.P_CENTERS.m_fm_powered_tether_dark then
+                        table.insert(destroyable_cards, hand_card)
+                    end
+                end
+
+                for i = 1, math.min(DETONATE_AMOUNT, #destroyable_cards) do
+                    local idx = math.random(1, #destroyable_cards)
+                    destroyable_cards[idx]:start_dissolve()
+                    table.remove(destroyable_cards, idx)
+                end
+                
+                return {
+                    message = "Detonated!",
+                    sound = "fm_volatile",
+                    colour = G.C.RED
+                }
+            end
+        end
+    end
 }
 
 SMODS.Consumable {
@@ -317,6 +429,7 @@ SMODS.Consumable {
         
         if not is_correct_mote then
             -- Destroy hand except tethers
+            G.ROOM.jiggle = G.ROOM.jiggle + 100
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
                    handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
@@ -324,7 +437,7 @@ SMODS.Consumable {
                     handCard:start_dissolve()
                 end
             end
-     
+            
             -- Destroy random joker
             if #G.jokers.cards > 0 then
                 local random_joker = G.jokers.cards[math.random(1, #G.jokers.cards)]
@@ -336,7 +449,11 @@ SMODS.Consumable {
                     consumable:start_dissolve()
                 end
             end
-     
+
+            G.GAME.blind:juice_up()
+            G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
+            G.GAME.blind_alignment = nil
+            
             SMODS.calculate_effect({
                 message = "Wrong Energy!",
                 sound = "fm_jolt",
@@ -374,7 +491,7 @@ SMODS.Consumable {
         -- Add Voltaic Overflow to three cards
         local available_cards = {}
         for _, handCard in ipairs(G.hand.cards) do
-            if not handCard.ability.voltaic_overflow and 
+            if not handCard.ability.fm_voltaic_overflow and 
                handCard.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
                handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
                handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_dark then
@@ -434,6 +551,7 @@ SMODS.Consumable {
         
         if not is_correct_mote then
             -- Destroy hand except tethers
+            G.ROOM.jiggle = G.ROOM.jiggle + 100
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
                     handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
@@ -453,6 +571,10 @@ SMODS.Consumable {
                     consumable:start_dissolve()
                 end
             end
+
+            G.GAME.blind:juice_up()
+            G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
+            G.GAME.blind_alignment = nil
         
             SMODS.calculate_effect({
                 message = "Wrong Energy!",
@@ -491,7 +613,7 @@ SMODS.Consumable {
         -- Add Voltaic Overflow to three cards
         local available_cards = {}
         for _, handCard in ipairs(G.hand.cards) do
-            if not handCard.ability.voltaic_overflow and 
+            if not handCard.ability.fm_voltaic_overflow and 
                 handCard.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
                 handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
                 handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_dark then

@@ -79,7 +79,9 @@ SMODS.Enhancement {
                         trigger = 'after',
                         delay = 0.3,
                         func = function()
+                            target_card:flip()
                             target_card:change_suit(card.base.suit)
+                            target_card:flip()
                             return true
                         end
                     }))
@@ -126,12 +128,14 @@ SMODS.Enhancement {
                         tostring(new_rank)
             
             local new_card = G.P_CARDS[new_code..new_val]
+            card:flip()
             card:set_base(new_card)
             card_eval_status_text(card, 'extra', nil, nil, nil, {
                 message = "Reshaped!",
                 sound = "fm_dissected",
                 colour = G.C.BLACK
             })
+            card:flip()
             return{
                 chips = new_rank * 2
             }

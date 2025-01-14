@@ -50,8 +50,7 @@ SMODS.Enhancement {
     end
 }
 
--- functionally works, but pacing is off when igniting
--- "Scorched!" -> "Ignited!" -> Scores chips and mult -> Chips added to total -> Card gets destroyed
+-- works
 SMODS.Enhancement {
     key = "scorch",
     loc_txt = {
@@ -77,36 +76,6 @@ SMODS.Enhancement {
         return { vars = { card.ability.extra.stacks } }
     end,
     calculate = function(self, card, context)
-        -- if context.cardarea == G.play and context.main_scoring then
-        --     card.ability.extra.stacks = card.ability.extra.stacks + 1
-        --     card_eval_status_text(card, 'extra', nil, nil, nil,     
-        --         {
-        --             message = "Scorched!",
-        --             sound = "fm_scorch",
-        --             colour = G.C.ORANGE
-        --         }
-        --     )
-
-        --     if card.ability.extra.stacks >= 3 then
-        --         G.E_MANAGER:add_event(Event({
-        --             trigger = 'after',
-        --             func = function()
-        --                 card.destroyed = true
-        --                 return true
-        --             end
-        --         }))
-        --         card_eval_status_text(card, 'extra', nil, nil, nil,     
-        --             {
-        --                 message = "Ignited!",
-        --                 sound = "fm_ignition",
-        --                 colour = G.C.ORANGE
-        --             }
-        --         )
-        --         return{
-        --             x_mult = 3
-        --         }
-        --     end
-        -- end
         if context.cardarea == G.play and context.main_scoring then
             card.ability.extra.stacks = card.ability.extra.stacks + 1
             return {
@@ -161,12 +130,14 @@ SMODS.Enhancement {
                 or card.ability.extra.current_rank == 12 and 'Q'
                 or card.ability.extra.current_rank == 13 and 'K'
                 or 'A'
+            card:flip()
             card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
             card_eval_status_text(card, 'extra', nil, nil, nil, {
                 message = "Rank Up!",
                 sound = "fm_restoration",
                 colour = G.C.ORANGE
             })
+            card:flip()
         end
  
         if context.cardarea == G.play and context.main_scoring then
@@ -180,6 +151,7 @@ SMODS.Enhancement {
                         or original_rank == 12 and 'Q'
                         or original_rank == 13 and 'K'
                         or 'A'
+                    card:flip()
                     card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
                     card.ability.extra.current_rank = original_rank
                     card_eval_status_text(card, 'extra', nil, nil, nil, {
@@ -187,6 +159,7 @@ SMODS.Enhancement {
                         sound = "fm_restoration",
                         colour = G.C.ORANGE
                     })
+                    card:flip()
                 end
             }
         end
