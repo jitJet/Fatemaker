@@ -6,8 +6,9 @@ SMODS.Enhancement {
         text = {
             "{C:green}STRAND{}",
             "When scored with adjacent cards,",
-            "adds chips equal to the sum of",
-            "their highest ranks"
+            "this rank will score the number of chips",
+            "of the highest rank amongst them and multiplied",
+            "by the number of adjacent cards"
         }
     },
     atlas = 'Enhancements',
@@ -63,7 +64,7 @@ SMODS.Enhancement {
         name = "Woven Mail",
         text = {
             "{C:green}STRAND{}",
-            "This card cannot be {C:attention}debuffed{}",
+            "Immune to {C:attention}debuffs{}",
         }
     },
     atlas = 'Enhancements',
@@ -116,6 +117,7 @@ SMODS.Enhancement {
     
             for i = 1, math.min(3, #lowest_cards) do
                 local handCard = lowest_cards[i]
+                handCard:flip()
                 SMODS.calculate_effect({
                     message = string.format("+%d Rank!", card.ability.extra.threads),
                     sound = "fm_unravel",
@@ -134,13 +136,12 @@ SMODS.Enhancement {
                             or new_rank == 13 and 'K'
                             or 'A'
                         handCard:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                        handCard:flip()
                         return true
                     end
                 }))
             end
-            return {
-                remove = true
-            }
+            card.should_shatter = true
         end
     end
 }

@@ -70,6 +70,7 @@ SMODS.Enhancement {
                 for i = 1, math.min(5, #eligible_cards) do
                     local random_index = math.random(1, #eligible_cards)
                     local target_card = table.remove(eligible_cards, random_index)
+                    target_card:flip()
                     SMODS.calculate_effect({
                         message = ("Finalized!"),
                         sound = "fm_finalized",
@@ -79,7 +80,6 @@ SMODS.Enhancement {
                         trigger = 'after',
                         delay = 0.3,
                         func = function()
-                            target_card:flip()
                             target_card:change_suit(card.base.suit)
                             target_card:flip()
                             return true

@@ -79,7 +79,6 @@ SMODS.Enhancement {
         if context.cardarea == G.play and context.main_scoring then
             card.ability.extra.stacks = card.ability.extra.stacks + 1
             return {
-                xmult = card.ability.extra.stacks == 3 and card.ability.extra.x_mult or nil,
                 message = 'Scorched!',
                 colour = G.C.ORANGE,
                 sound = 'fm_scorch'
@@ -87,6 +86,7 @@ SMODS.Enhancement {
         end
         if context.destroying_card and card.ability.extra.stacks == 3 then
             return {
+                x_mult = 3,
                 message = 'Ignited!',
                 sound = 'fm_ignition',
                 colour = G.C.ORANGE
@@ -103,7 +103,7 @@ SMODS.Enhancement {
         text = {
             "{C:attention}SOLAR{}",
             "Card's rank increases by 1",
-            "after each hand is played",
+            "after each hand played",
             "Resets after playing"
         }
     },
@@ -131,13 +131,20 @@ SMODS.Enhancement {
                 or card.ability.extra.current_rank == 13 and 'K'
                 or 'A'
             card:flip()
-            card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-            card_eval_status_text(card, 'extra', nil, nil, nil, {
+            SMODS.calculate_effect({
                 message = "Rank Up!",
                 sound = "fm_restoration",
                 colour = G.C.ORANGE
-            })
-            card:flip()
+            }, card)
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.3,
+                func = function()
+                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                    card:flip()
+                    return true
+                end
+            }))
         end
  
         if context.cardarea == G.play and context.main_scoring then
@@ -152,14 +159,21 @@ SMODS.Enhancement {
                         or original_rank == 13 and 'K'
                         or 'A'
                     card:flip()
-                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-                    card.ability.extra.current_rank = original_rank
-                    card_eval_status_text(card, 'extra', nil, nil, nil, {
+                    SMODS.calculate_effect({
                         message = "Reset!",
                         sound = "fm_restoration",
                         colour = G.C.ORANGE
-                    })
-                    card:flip()
+                    }, card)
+                    G.E_MANAGER:add_event(Event({
+                        trigger = 'after',
+                        delay = 0.3,
+                        func = function()
+                            card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                            card.ability.extra.current_rank = original_rank
+                            card:flip()
+                            return true
+                        end
+                    }))
                 end
             }
         end

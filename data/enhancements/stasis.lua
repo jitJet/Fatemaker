@@ -46,13 +46,15 @@ SMODS.Enhancement {
                     if adjacent_slow then
                         table.insert(cards_to_freeze, card)
                         for _, card_to_freeze in ipairs(cards_to_freeze) do
-                            card_to_freeze.config.center = G.P_CENTERS.m_fm_freeze
+                            card_to_freeze:flip()
+                            card_to_freeze:set_ability(G.P_CENTERS.m_fm_freeze, nil, true)
                             card_to_freeze.ability.extra = { times_returned = 0 }
                             card_eval_status_text(card_to_freeze, 'extra', nil, nil, nil, {
                                 message = "Frozen!",
                                 sound = "fm_freeze",
                                 colour = G.C.SUITS.Spades
                             })
+                            card_to_freeze:flip()
                         end
                     end
                     break
@@ -95,6 +97,7 @@ SMODS.Enhancement {
                     if i > 1 then
                         local left_card = context.scoring_hand[i-1]
                         if left_card and left_card.base.suit == card.base.suit and left_card.ability.set ~= "Enhanced" then
+                            left_card:flip()
                             left_card:set_ability(G.P_CENTERS.m_fm_slow, nil, true)
                             card.ability.extra = { frozen = false }
                             card_eval_status_text(left_card, 'extra', nil, nil, nil, {
@@ -102,6 +105,7 @@ SMODS.Enhancement {
                                 sound = "fm_slow",
                                 colour = G.C.SUITS.Spades
                             })
+                            left_card:flip()
                         end
                     end
                     break
@@ -111,7 +115,7 @@ SMODS.Enhancement {
     end
 }
 
--- I assume it works because I'm too lucky that it doesn't shatter
+-- works
 SMODS.Enhancement {
     key = "shatter",
     loc_txt = {
@@ -119,10 +123,10 @@ SMODS.Enhancement {
         text = {
             "{C:spades}STASIS{}",
             "Has a {C:green}#2# in #3#{} chance of being",
-            "destroyed. Before destroyed,",
+            "destroyed. Before being destroyed,",
             "each scored {C:attention}Stasis{} card",
             "grants {C:money}$3{} while this card",
-            "is in hand and unplayed",
+            "is in hand",
             "{C:inactive}(Currently {C:money}$#1#{C:inactive})"
         }
     },

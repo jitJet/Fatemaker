@@ -113,7 +113,7 @@ SMODS.Blind{
             if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                 -- Set alignment on G.GAME.blind instead of self
                 play_sound("fm_machine_garden_mote_spawn", nil, 0.3)
-                G.GAME.blind.blind_alignment = math.random() < 0.5 and 'light' or 'dark'
+                G.GAME.blind.blind_alignment = pseudorandom('bl_mote') < G.GAME.probabilities.normal / 2 and 'light' or 'dark'
                 
                 -- Change blind icon
                 G.GAME.blind:juice_up()
