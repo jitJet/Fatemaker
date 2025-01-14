@@ -1,29 +1,31 @@
-SMODS.Sound({ vol = 0.6, key = "amplified", path = "amplified.wav" })
-SMODS.Sound({ vol = 0.6, key = "blind", path = "blind.wav" })
-SMODS.Sound({ vol = 0.6, key = "cracked", path = "cracked.wav" })
-SMODS.Sound({ vol = 0.6, key = "devour", path = "devour.wav" })
-SMODS.Sound({ vol = 0.4, key = "dissected", path = "dissected.wav" })
-SMODS.Sound({ vol = 0.6, key = "finalized", path = "finalized.wav" })
-SMODS.Sound({ vol = 0.6, key = "freeze", path = "freeze.wav" })
-SMODS.Sound({ vol = 0.6, key = "ignition", path = "ignition.wav" })
-SMODS.Sound({ vol = 0.6, key = "jolt", path = "jolt.wav" })
-SMODS.Sound({ vol = 0.6, key = "overshield", path = "overshield.wav" })
-SMODS.Sound({ vol = 0.6, key = "primed", path = "primed.wav" })
-SMODS.Sound({ vol = 0.6, key = "radiant", path = "radiant.wav" })
-SMODS.Sound({ vol = 0.6, key = "resonant", path = "resonant.wav" })
-SMODS.Sound({ vol = 0.6, key = "restoration", path = "restoration.wav" })
-SMODS.Sound({ vol = 0.6, key = "scorch", path = "scorch.wav" })
-SMODS.Sound({ vol = 0.6, key = "shatter", path = "shatter.wav" })
-SMODS.Sound({ vol = 0.6, key = "slow", path = "slow.wav" })
-SMODS.Sound({ vol = 0.6, key = "tangle", path = "tangle.wav" })
-SMODS.Sound({ vol = 0.6, key = "threaded", path = "threaded.wav" })
-SMODS.Sound({ vol = 0.6, key = "transcendent", path = "transcendent.wav" })
-SMODS.Sound({ vol = 0.6, key = "unravel", path = "unravel.wav" })
-SMODS.Sound({ vol = 0.6, key = "volatile", path = "volatile.wav" })
-SMODS.Sound({ vol = 0.6, key = "wovenmail", path = "wovenmail.wav" })
+-- Enhancements
+SMODS.Sound({ vol = 0.6, key = "amplified", path = "amplified.ogg" })
+SMODS.Sound({ vol = 0.6, key = "blind", path = "blind.ogg" })
+SMODS.Sound({ vol = 0.6, key = "cracked", path = "cracked.ogg" })
+SMODS.Sound({ vol = 0.6, key = "devour", path = "devour.ogg" })
+SMODS.Sound({ vol = 0.4, key = "dissected", path = "dissected.ogg" })
+SMODS.Sound({ vol = 0.6, key = "finalized", path = "finalized.ogg" })
+SMODS.Sound({ vol = 0.6, key = "freeze", path = "freeze.ogg" })
+SMODS.Sound({ vol = 0.6, key = "ignition", path = "ignition.ogg" })
+SMODS.Sound({ vol = 0.6, key = "jolt", path = "jolt.ogg" })
+SMODS.Sound({ vol = 0.6, key = "overshield", path = "overshield.ogg" })
+SMODS.Sound({ vol = 0.6, key = "primed", path = "primed.ogg" })
+SMODS.Sound({ vol = 0.6, key = "radiant", path = "radiant.ogg" })
+SMODS.Sound({ vol = 0.6, key = "resonant", path = "resonant.ogg" })
+SMODS.Sound({ vol = 0.6, key = "restoration", path = "restoration.ogg" })
+SMODS.Sound({ vol = 0.6, key = "scorch", path = "scorch.ogg" })
+SMODS.Sound({ vol = 0.6, key = "shatter", path = "shatter.ogg" })
+SMODS.Sound({ vol = 0.6, key = "slow", path = "slow.ogg" })
+SMODS.Sound({ vol = 0.6, key = "tangle", path = "tangle.ogg" })
+SMODS.Sound({ vol = 0.6, key = "threaded", path = "threaded.ogg" })
+SMODS.Sound({ vol = 0.6, key = "transcendent", path = "transcendent.ogg" })
+SMODS.Sound({ vol = 0.6, key = "unravel", path = "unravel.ogg" })
+SMODS.Sound({ vol = 0.6, key = "volatile", path = "volatile.ogg" })
+SMODS.Sound({ vol = 0.6, key = "wovenmail", path = "wovenmail.ogg" })
 
-SMODS.Sound({ vol = 0.6, key = "corrupted_wish_wish_granted", path = "corrupted_wish_wish_granted.wav" })
-SMODS.Sound({ vol = 0.6, key = "corrupted_wish_taken", path = "corrupted_wish_taken.wav" })
+-- Corrupted Wish
+SMODS.Sound({ vol = 0.6, key = "corrupted_wish_wish_granted", path = "corrupted_wish_wish_granted.ogg" })
+SMODS.Sound({ vol = 0.6, key = "corrupted_wish_taken", path = "corrupted_wish_taken.ogg" })
 
 SMODS.Sound({
     vol = 0.8,
@@ -34,6 +36,15 @@ SMODS.Sound({
         return (G.GAME and G.GAME.blind and G.GAME.blind.config.blind.key == "bl_fm_corrupted_wish")
     end,
 })
+
+-- Machine Garden
+SMODS.Sound({ vol = 0.6, key = "machine_garden_explosion", path = "machine_garden_explosion.ogg" })
+SMODS.Sound({ vol = 0.6, key = "machine_garden_gauge_fill", path = "machine_garden_gauge_fill.ogg" })
+SMODS.Sound({ vol = 0.6, key = "machine_garden_mote_spawn", path = "machine_garden_mote_spawn.ogg" })
+SMODS.Sound({ vol = 0.6, key = "machine_garden_tether_linked", path = "machine_garden_tether_linked.ogg" })
+SMODS.Sound({ vol = 0.6, key = "machine_garden_tether_powered", path = "machine_garden_tether_powered.ogg" })
+SMODS.Sound({ vol = 0.6, key = "machine_garden_tether_unpowering", path = "machine_garden_tether_unpowering.ogg" })
+SMODS.Sound({ vol = 0.6, key = "machine_garden_voltaic_overflow_spawn", path = "machine_garden_voltaic_overflow_spawn.ogg" })
 
 SMODS.Sound({
     vol = 0.8,

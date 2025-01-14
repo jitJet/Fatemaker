@@ -102,7 +102,7 @@ SMODS.Blind{
                     major = G.play,
                 })
                 -- CHANGE THE SOUND LATER
-                play_sound("fm_corrupted_wish_wish_granted")
+                play_sound("fm_machine_garden_gauge_fill")
                 G.play:juice_up(0.1, 0.2)
                 return true
             end
@@ -112,6 +112,7 @@ SMODS.Blind{
         if self.light_gauge >= 5 and self.dark_gauge >= 5 then
             if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                 -- Set alignment on G.GAME.blind instead of self
+                play_sound("fm_machine_garden_mote_spawn", nil, 0.3)
                 G.GAME.blind.blind_alignment = math.random() < 0.5 and 'light' or 'dark'
                 
                 -- Change blind icon
@@ -177,7 +178,7 @@ SMODS.Blind{
                                     backdrop_colour = G.C.WHITE
                                 })
                                 -- CHANGE THE SOUND LATER
-                                play_sound("fm_corrupted_wish_wish_granted")
+                                play_sound("fm_machine_garden_tether_linked")
                                 G.play:juice_up(0.1, 0.2)
                                 G.E_MANAGER:add_event(Event({
                                     trigger = 'after',
@@ -357,12 +358,14 @@ SMODS.Sticker {
                 for _, hand_card in ipairs(G.hand.cards) do
                     if hand_card.config.center.key == "m_fm_powered_tether_light" or
                         hand_card.config.center.key == "m_fm_powered_tether_dark" then
+                        play_sound("fm_machine_garden_tether_unpowering")
                         hand_card:set_ability(G.P_CENTERS.m_fm_unpowered_tether)
                     end
                 end
                 for _, play_card in ipairs(G.play.cards) do
                     if play_card.config.center.key == "m_fm_powered_tether_light" or
                         play_card.config.center.key == "m_fm_powered_tether_dark" then
+                        play_sound("fm_machine_garden_tether_unpowering")
                         play_card:set_ability(G.P_CENTERS.m_fm_unpowered_tether)
                     end
                 end
@@ -400,7 +403,6 @@ SMODS.Sticker {
                 
                 return {
                     message = "Detonated!",
-                    sound = "fm_volatile",
                     colour = G.C.RED
                 }
             end
@@ -429,7 +431,9 @@ SMODS.Consumable {
         
         if not is_correct_mote then
             -- Destroy hand except tethers
+            ease_background_colour{new_colour = G.C.RED, contrast = 3}
             G.ROOM.jiggle = G.ROOM.jiggle + 100
+            play_sound("fm_machine_garden_explosion")
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
                    handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
@@ -453,12 +457,6 @@ SMODS.Consumable {
             G.GAME.blind:juice_up()
             G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
             G.GAME.blind_alignment = nil
-            
-            SMODS.calculate_effect({
-                message = "Wrong Energy!",
-                sound = "fm_jolt",
-                colour = G.C.RED
-            }, card)
             return
         end
      
@@ -467,7 +465,7 @@ SMODS.Consumable {
             if handCard.config.center == G.P_CENTERS.m_fm_unpowered_tether then
                 SMODS.calculate_effect({
                     message = "Charged!",
-                    sound = "fm_jolt",
+                    sound = "fm_machine_garden_tether_powered",
                     colour = G.C.BLUE
                 }, handCard)
                 G.E_MANAGER:add_event(Event({
@@ -506,7 +504,7 @@ SMODS.Consumable {
             end
             SMODS.calculate_effect({
                 message = "!",
-                sound = "fm_jolt",
+                sound = "fm_machine_garden_voltaic_overflow_spawn",
                 colour = G.C.BLUE
             }, _card)
             _card.jolted = true
@@ -551,7 +549,9 @@ SMODS.Consumable {
         
         if not is_correct_mote then
             -- Destroy hand except tethers
+            ease_background_colour{new_colour = G.C.RED, contrast = 3}
             G.ROOM.jiggle = G.ROOM.jiggle + 100
+            play_sound("fm_machine_garden_explosion")
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.config.center ~= G.P_CENTERS.m_fm_unpowered_tether and
                     handCard.config.center ~= G.P_CENTERS.m_fm_powered_tether_light and
@@ -575,12 +575,6 @@ SMODS.Consumable {
             G.GAME.blind:juice_up()
             G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
             G.GAME.blind_alignment = nil
-        
-            SMODS.calculate_effect({
-                message = "Wrong Energy!",
-                sound = "fm_jolt",
-                colour = G.C.RED
-            }, card)
             return
         end
         
@@ -589,7 +583,7 @@ SMODS.Consumable {
             if handCard.config.center == G.P_CENTERS.m_fm_unpowered_tether then
                 SMODS.calculate_effect({
                     message = "Charged!",
-                    sound = "fm_jolt",
+                    sound = "fm_machine_garden_tether_powered",
                     colour = G.C.ORANGE
                 }, handCard)
                 G.E_MANAGER:add_event(Event({
@@ -628,7 +622,7 @@ SMODS.Consumable {
             end
             SMODS.calculate_effect({
                 message = "!",
-                sound = "fm_jolt",
+                sound = "fm_machine_garden_voltaic_overflow_spawn",
                 colour = G.C.ORANGE
             }, _card)
             _card.jolted = true
