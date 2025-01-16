@@ -327,6 +327,16 @@ SMODS.Sticker {
         Joker = false
     },
     pos = {x=0, y=0},
+    draw = function(self, card, layer)
+        local t = G.TIMERS.REAL
+        local shake = 0.03 * (math.sin(12*t) + math.cos(8*t))
+        local pulse = 0.1 + 0.05 * math.max(math.sin(t), math.cos(1.2*t))
+        
+        G.shared_stickers[self.key].role.draw_major = card
+        G.shared_stickers[self.key]:draw_shader('hologram', nil, card.ARGS.send_to_shader, nil, card.children.center, pulse, shake)
+        G.shared_stickers[self.key]:draw_shader('voucher', nil, card.ARGS.send_to_shader, nil, card.children.center, pulse * 0.9, -shake)
+        G.shared_stickers[self.key]:draw_shader('negative_shine', nil, card.ARGS.send_to_shader, nil, card.children.center, pulse * 0.8, shake * 1.2)
+    end,
     calculate = function(self, card, context)
         if card.area == G.hand and context.after then
             local DETONATE_AMOUNT = 9

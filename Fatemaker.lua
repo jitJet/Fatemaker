@@ -20,6 +20,7 @@ assert(SMODS.load_file("data/enhancements/prismatic.lua"))()
 assert(SMODS.load_file("data/jokers.lua"))()
 assert(SMODS.load_file("data/blinds/corrupted_wish.lua"))()
 assert(SMODS.load_file("data/blinds/machine_garden.lua"))()
+assert(SMODS.load_file("data/blinds/finalized_edge.lua"))()
 assert(SMODS.load_file("data/ui/loadout.lua"))()
 
 ----------------------------------------------
