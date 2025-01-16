@@ -10,6 +10,7 @@
 SMODS.load_file("data/overrides.lua")()
 SMODS.load_file("data/atlases.lua")()
 SMODS.load_file("data/sounds.lua")()
+assert(SMODS.load_file("data/editions/veiled.lua"))()
 assert(SMODS.load_file("data/enhancements/void.lua"))()
 assert(SMODS.load_file("data/enhancements/solar.lua"))()
 assert(SMODS.load_file('data/enhancements/arc.lua'))()
