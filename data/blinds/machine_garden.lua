@@ -120,7 +120,16 @@ SMODS.Blind{
                 G.GAME.blind.children.animatedSprite:set_sprite_pos({
                     x = 0,
                     y = G.GAME.blind.blind_alignment == 'light' and 3 or 2
-                })    
+                })
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 5.0,
+                    func = function()
+                        G.GAME.blind.children.animatedSprite:set_sprite_pos({x = 0, y = 1})
+                        play_sound("fm_machine_garden_blind_switchback")
+                        return true
+                    end
+                }))
                 -- Create Light Mote
                 G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
                 G.E_MANAGER:add_event(Event({
@@ -221,8 +230,7 @@ SMODS.Blind{
                             major = G.play,
                             backdrop_colour = G.C.WHITE
                         })
-                        -- CHANGE THE SOUND LATER
-                        play_sound("fm_corrupted_wish_wish_granted")
+                        play_sound("fm_machine_garden_enlightened_expired")
                         G.play:juice_up(0.1, 0.2)
                         return true
                     end

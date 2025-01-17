@@ -50,7 +50,9 @@ SMODS.Joker{
     loc_txt = {
         name = "Well of Radiance",
         text = {
-            "",
+            "Winning a blind per ante will",
+            "cause the next blind's hand be",
+            "half {C:attention}Radiant{} and half {C:attention}Restoration{}"
         }
     },
     atlas = 'Jokers',
@@ -69,27 +71,134 @@ SMODS.Joker{
     end
 }
 
-
 SMODS.Joker{
     key = "golden_gun",
     loc_txt = {
         name = "Golden Gun",
         text = {
-            "",
+            "Charge with 5 {C:orange}Solar{} cards.",
+            "Once charged, next hand played sets",
+            "number of retriggers. Then, next hand",
+            "with {C:orange}Solar{} cards will retrigger those",
+            "cards that many times.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
     discovered = true,
     pos = {x=1, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            loaded_retriggers = 0,
+            state = "charging"  -- states: "charging", "ready", "loaded", "firing"
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        elseif card.ability.extra.state == "ready" then
+            return { vars = { "Ready!" } }
+        elseif card.ability.extra.state == "loaded" then
+            return { vars = { card.ability.extra.loaded_retriggers .. "x Loaded!" } }
+        else
+            return { vars = { "0/5 Charging" } }
+        end
+    end,
     calculate = function(self, card, context)
         if context.joker_main then
-            
+            -- Skip Blueprint copies if in loaded state
+            if card.ability.extra.state == "loaded" then
+                for i = 1, #G.jokers.cards do
+                    if G.jokers.cards[i].ability.name == "Blueprint" and
+                       G.jokers.cards[i+1] == card then
+                        return nil
+                    end
+                end
+            end
+     
+            local solar_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_scorch then
+                    solar_count = solar_count + 1
+                end
+            end
+     
+            if card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + solar_count)
+                
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.ORANGE,
+                        card = card
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.ORANGE,
+                        card = card
+                    }
+                end
+            elseif card.ability.extra.state == "ready" and solar_count > 0 then
+                card.ability.extra.loaded_retriggers = solar_count
+                card.ability.extra.state = "loaded"
+                return {
+                    message = solar_count .. "x Loaded!",
+                    colour = G.C.ORANGE,
+                    sound = "fm_golden_gun_loaded",
+                    card = card
+                }
+            elseif card.ability.extra.state == "loaded" then
+                local has_solar = false
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_scorch then
+                        has_solar = true
+                        break
+                    end
+                end
+                
+                if has_solar then
+                    card.ability.extra.state = "firing"
+                end
+            end
+        end
+     
+        if context.cardarea == G.play and context.repetition and not context.repetition_only then
+            if card.ability.extra.state == "loaded" and
+               (context.other_card.config.center == G.P_CENTERS.m_fm_radiant or
+                context.other_card.config.center == G.P_CENTERS.m_fm_restoration or
+                context.other_card.config.center == G.P_CENTERS.m_fm_scorch) then
+                
+                local retriggers = card.ability.extra.loaded_retriggers
+                
+                if context.other_card == context.scoring_hand[#context.scoring_hand] then
+                    card.ability.extra.state = "charging"
+                    card.ability.extra.charge = 0
+                    card.ability.extra.loaded_retriggers = 0
+                end
+                
+                return {
+                    message = retriggers .. "x Shot!",
+                    sound = "fm_golden_gun",
+                    repetitions = retriggers,
+                    card = context.other_card
+                }
+            end
         end
     end
 }
@@ -99,13 +208,16 @@ SMODS.Joker{
     loc_txt = {
         name = "Thundercrash",
         text = {
-            "",
+            "If a [suit] is played,",
+            "the highest card gains {C:blue}500%{} chip worth",
+            "and {C:blue}jolts{} played unenhanced cards.",
+            "Suit changes each round."
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
@@ -123,13 +235,14 @@ SMODS.Joker{
     loc_txt = {
         name = "Gathering Storm",
         text = {
-            "",
+            "First hand played per round {C:blue}amplifies{} 3 unenhanced cards",
+            "Playing {C:blue}amplified{} cards will retrigger them",
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
@@ -147,13 +260,14 @@ SMODS.Joker{
     loc_txt = {
         name = "Ward of Dawn",
         text = {
-            "",
+            "While at least one Overshield card is in hand,",
+            "gain {C:mult}+10{} Mult for each Void card scored"
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
@@ -171,13 +285,15 @@ SMODS.Joker{
     loc_txt = {
         name = "Shadowshot",
         text = {
-            "",
+            "Discarding a Void card per round will",
+            "transform 3 random unenhanced cards to",
+            "its effect"
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,

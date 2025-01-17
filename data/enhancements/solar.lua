@@ -5,7 +5,7 @@ SMODS.Enhancement {
         name = "Radiant",
         text = {
             "{C:attention}SOLAR{}",
-            "Grants {X:mult,C:white}X0.5{} Mult for",
+            "Grants {X:mult,C:white}X0.2{} Mult for",
             "each {C:attention}Solar{} card in",
             "hand or played",
         }
@@ -43,7 +43,7 @@ SMODS.Enhancement {
                     colour = G.C.ORANGE
                 })
                 return{
-                    x_mult = 1 + (0.5 * solar_count)
+                    x_mult = 1 + (0.2 * solar_count)
                 }
             end
         end
@@ -84,7 +84,7 @@ SMODS.Enhancement {
                 sound = 'fm_scorch'
             }
         end
-        if context.destroying_card and card.ability.extra.stacks == 3 then
+        if context.destroying_card and card.ability.extra.stacks >= 3 then
             return {
                 x_mult = 3,
                 message = 'Ignited!',
