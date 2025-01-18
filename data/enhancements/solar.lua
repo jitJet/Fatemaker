@@ -115,6 +115,13 @@ SMODS.Enhancement {
             hands_seen = 0
         }
     },
+    set_ability = function(self, card, initial)
+        card.ability.extra = {
+            base_rank = 0,
+            current_rank = 0,
+            hands_seen = 0
+        }
+    end,
     pos = {x=2, y=3},
     calculate = function(self, card, context)
         if context.cardarea == G.hand and context.after and not context.end_of_round then

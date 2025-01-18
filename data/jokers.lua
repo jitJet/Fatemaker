@@ -50,9 +50,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Well of Radiance",
         text = {
-            "Winning a blind per ante will",
-            "cause the next blind's hand be",
-            "half {C:attention}Radiant{} and half {C:attention}Restoration{}"
+            "Charge with 5 {C:orange}Solar{} cards.",
+            "Once charged, win a blind per ante",
+            "to ready. Next blind's first hand will",
+            "be half {C:attention}Radiant{} and {C:attention}Restoration{}.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -64,9 +66,99 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=0, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging", -- states: "charging", "ready", "primed"
+            current_ante = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        elseif card.ability.extra.state == "ready" then
+            return { vars = { "Ready!" } }
+        elseif card.ability.extra.state == "primed" then
+            return { vars = { "Primed!" } }
+        else
+            return { vars = { "0/5 Charging" } }
+        end
+    end,
     calculate = function(self, card, context)
         if context.joker_main then
+            if card.ability.extra.state == "charging" then
+                local solar_count = 0
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_scorch then
+                        solar_count = solar_count + 1
+                    end
+                end
+                
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + solar_count)
+                
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.ORANGE,
+                        card = card
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.ORANGE,
+                        card = card
+                    }
+                end
+            end
+        end
+ 
+        if context.end_of_round and card.ability.extra.state == "ready" and
+            card.ability.extra.current_ante ~= G.GAME.round_resets.blind_ante then
+            card.ability.extra.state = "primed"
+            card.ability.extra.current_ante = G.GAME.round_resets.blind_ante
+            return {
+                message = "Primed!",
+                colour = G.C.ORANGE,
+                card = card
+            }
+        end
+        
+        if context.before and card.ability.extra.state == "primed" and #G.hand.cards > 0 then
+            local normal_cards = {}
+            for _, handCard in ipairs(G.hand.cards) do
+                if handCard.ability.set ~= "Enhanced" then
+                    table.insert(normal_cards, handCard)
+                end
+            end
+         
+            if #normal_cards >= 2 then
+                local half = math.floor(#normal_cards / 2)
+                for i = 1, half do
+                    normal_cards[i]:set_ability(G.P_CENTERS.m_fm_radiant)
+                    card_eval_status_text(normal_cards[i], 'extra', nil, nil, nil, {
+                        message = "Radiant!",
+                        sound = "fm_well_of_radiance",
+                        colour = G.C.ORANGE
+                    })
+                end
+                for i = half + 1, #normal_cards do
+                    normal_cards[i]:set_ability(G.P_CENTERS.m_fm_restoration)
+                    card_eval_status_text(normal_cards[i], 'extra', nil, nil, nil, {
+                        message = "Restored!",
+                        sound = "fm_well_of_radiance",
+                        colour = G.C.ORANGE
+                    })
+                end
+            end
             
+            card.ability.extra.state = "charging"
+            card.ability.extra.charge = 0
         end
     end
 }
