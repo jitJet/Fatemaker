@@ -69,19 +69,15 @@ SMODS.Joker{
     config = {
         extra = {
             charge = 0,
-            state = "charging", -- states: "charging", "ready", "primed"
+            state = "charging",
             current_ante = 0
         }
     },
     loc_vars = function(self, info_queue, card)
         if card.ability.extra.state == "charging" then
             return { vars = { card.ability.extra.charge .. "/5 Charging" } }
-        elseif card.ability.extra.state == "ready" then
-            return { vars = { "Ready!" } }
-        elseif card.ability.extra.state == "primed" then
-            return { vars = { "Primed!" } }
         else
-            return { vars = { "0/5 Charging" } }
+            return { vars = { "Ready!" } }
         end
     end,
     calculate = function(self, card, context)
@@ -96,40 +92,28 @@ SMODS.Joker{
                     end
                 end
                 
-                card.ability.extra.charge = math.min(5, card.ability.extra.charge + solar_count)
-                
-                if card.ability.extra.charge >= 5 then
-                    card.ability.extra.state = "ready"
-                    local eval = function() return card.ability.extra.state == "ready" end
-                    juice_card_until(card, eval, true)
-                    return {
-                        message = "Ready!",
-                        sound = "fm_super_ready",
-                        colour = G.C.ORANGE,
-                        card = card
-                    }
-                else
-                    return {
-                        message = "Charging...",
-                        colour = G.C.ORANGE,
-                        card = card
-                    }
+                if solar_count > 0 then
+                    card.ability.extra.charge = math.min(5, card.ability.extra.charge + solar_count)
+                    if card.ability.extra.charge >= 5 then
+                        card.ability.extra.state = "ready"
+                        local eval = function() return card.ability.extra.state == "ready" end
+                        juice_card_until(card, eval, true)
+                        return {
+                            message = "Ready!",
+                            sound = "fm_super_ready",
+                            colour = G.C.ORANGE
+                        }
+                    else
+                        return {
+                            message = "Charging...",
+                            colour = G.C.ORANGE
+                        }
+                    end
                 end
             end
         end
- 
-        if context.end_of_round and card.ability.extra.state == "ready" and
-            card.ability.extra.current_ante ~= G.GAME.round_resets.blind_ante then
-            card.ability.extra.state = "primed"
-            card.ability.extra.current_ante = G.GAME.round_resets.blind_ante
-            return {
-                message = "Primed!",
-                colour = G.C.ORANGE,
-                card = card
-            }
-        end
         
-        if not context.before and card.ability.extra.state == "primed" and #G.hand.cards > 0 then
+        if not context.before and context.end_of_round and card.ability.extra.state == "ready" and #G.hand.cards > 0 then
             local normal_cards = {}
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.ability.set ~= "Enhanced" then
@@ -188,9 +172,10 @@ SMODS.Joker{
         text = {
             "Charge with 5 {C:attention}Solar{} cards.",
             "Once charged, next hand played sets",
-            "number of retriggers. Then, next hand",
-            "with {C:attention}Solar{} cards will retrigger those",
-            "cards that many times.",
+            "number of retriggers depending on number of",
+            "{C:attention}Solar{} cards played.",
+            "Then, next hand with {C:attention}Solar{} cards",
+            "will retrigger them that many times",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -223,16 +208,6 @@ SMODS.Joker{
     end,
     calculate = function(self, card, context)
         if context.joker_main then
-            -- Skip Blueprint copies if in loaded state
-            if card.ability.extra.state == "loaded" then
-                for i = 1, #G.jokers.cards do
-                    if G.jokers.cards[i].ability.name == "Blueprint" and
-                       G.jokers.cards[i+1] == card then
-                        return nil
-                    end
-                end
-            end
-     
             local solar_count = 0
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
@@ -241,30 +216,31 @@ SMODS.Joker{
                     solar_count = solar_count + 1
                 end
             end
-     
+        
             if card.ability.extra.state == "charging" then
-                card.ability.extra.charge = math.min(5, card.ability.extra.charge + solar_count)
-                
-                if card.ability.extra.charge >= 5 then
-                    card.ability.extra.state = "ready"
-                    local eval = function() return card.ability.extra.state == "ready" end
-                    juice_card_until(card, eval, true)
-                    return {
-                        message = "Ready!",
-                        sound = "fm_super_ready",
-                        colour = G.C.ORANGE,
-                        card = card
-                    }
-                else
-                    return {
-                        message = "Charging...",
-                        colour = G.C.ORANGE,
-                        card = card
-                    }
+                if solar_count > 0 then
+                    card.ability.extra.charge = math.min(5, card.ability.extra.charge + solar_count)
+                    if card.ability.extra.charge >= 5 then
+                        card.ability.extra.state = "ready"
+                        local eval = function() return card.ability.extra.state == "ready" end
+                        juice_card_until(card, eval, true)
+                        return {
+                            message = "Ready!",
+                            sound = "fm_super_ready",
+                            colour = G.C.ORANGE
+                        }
+                    else
+                        return {
+                            message = "Charging...",
+                            colour = G.C.ORANGE
+                        }
+                    end
                 end
             elseif card.ability.extra.state == "ready" and solar_count > 0 then
                 card.ability.extra.loaded_retriggers = solar_count
                 card.ability.extra.state = "loaded"
+                local eval = function() return card.ability.extra.state == "loaded" end
+                juice_card_until(card, eval, true)
                 return {
                     message = solar_count .. "x Loaded!",
                     colour = G.C.ORANGE,
@@ -319,7 +295,7 @@ SMODS.Joker{
         name = "Thundercrash",
         text = {
             "Charge with 5 {C:blue}Arc{} cards.",
-            "When charged and {C:attention}#1#{} is played,",
+            "When charged and a {C:attention}#1#{} is played,",
             "highest card gains {C:blue}50 times{} the chips and",
             "{C:blue}jolts{} unenhanced cards",
             "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
@@ -369,20 +345,24 @@ SMODS.Joker{
                     end
                 end
                 
-                card.ability.extra.charge = math.min(5, card.ability.extra.charge + arc_count)
-                
-                if card.ability.extra.charge >= 5 then
-                    card.ability.extra.state = "ready"
-                    return {
-                        message = "Ready!",
-                        sound = "fm_super_ready",
-                        colour = G.C.BLUE
-                    }
-                else
-                    return {
-                        message = "Charging...",
-                        colour = G.C.BLUE
-                    }
+                if arc_count > 0 then
+                    card.ability.extra.charge = math.min(5, card.ability.extra.charge + arc_count)
+                    
+                    if card.ability.extra.charge >= 5 then
+                        card.ability.extra.state = "ready"
+                        local eval = function() return card.ability.extra.state == "ready" end
+                        juice_card_until(card, eval, true)
+                        return {
+                            message = "Ready!",
+                            sound = "fm_super_ready",
+                            colour = G.C.BLUE
+                        }
+                    else
+                        return {
+                            message = "Charging...",
+                            colour = G.C.BLUE
+                        }
+                    end
                 end
             end
             
@@ -401,22 +381,24 @@ SMODS.Joker{
                 
                 if has_target_suit then
                     for _, scoringCard in ipairs(context.scoring_hand) do
-                        SMODS.calculate_effect({
-                            message = "Jolted!",
-                            sound = "fm_jolt",
-                            colour = G.C.BLUE
-                        }, scoringCard)
-                        G.E_MANAGER:add_event(Event({
-                            trigger = 'after',
-                            delay = 0.3,
-                            func = function()
-                                scoringCard:flip()
-                                scoringCard:set_ability(G.P_CENTERS.m_fm_jolt)
-                                scoringCard:flip()
-                                return true
-                            end
-                        }))
-                    end                    
+                        if scoringCard.ability.set ~= "Enhanced" then
+                            SMODS.calculate_effect({
+                                message = "Jolted!",
+                                sound = "fm_jolt",
+                                colour = G.C.BLUE
+                            }, scoringCard)
+                            G.E_MANAGER:add_event(Event({
+                                trigger = 'after',
+                                delay = 0.3,
+                                func = function()
+                                    scoringCard:flip()
+                                    scoringCard:set_ability(G.P_CENTERS.m_fm_jolt)
+                                    scoringCard:flip()
+                                    return true
+                                end
+                            }))
+                        end
+                    end              
                 
                     -- Reset charge first
                     card.ability.extra.state = "charging"
@@ -445,22 +427,123 @@ SMODS.Joker{
     loc_txt = {
         name = "Gathering Storm",
         text = {
-            "First hand played per round {C:blue}amplifies{} 3 unenhanced cards",
-            "Playing {C:blue}amplified{} cards will retrigger them",
+            "Charge with 5 {C:blue}Arc{} cards.",
+            "When charged, 3 cards become {C:blue}Amplified{}.",
+            "Playing {C:blue}Amplified{} cards grants {C:red}+5{} Mult",
+            "per card. Continues until a hand without",
+            "{C:blue}Amplified{} cards is played",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = true,
+    blueprint_compat = false,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
     discovered = true,
     pos = {x=3, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging",
+            streak_mult = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        else
+            return { vars = { card.ability.extra.streak_mult > 0 and
+                "+" .. card.ability.extra.streak_mult .. " Mult" or "Ready!" } }
+        end
+    end,
     calculate = function(self, card, context)
         if context.joker_main then
-            
+            local arc_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_jolt or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_amplified or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_blinded then
+                    arc_count = arc_count + 1
+                end
+            end
+    
+            if arc_count > 0 and card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + arc_count)
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.BLUE
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.BLUE
+                    }
+                end
+            elseif card.ability.extra.state == "active" then
+                local amplified_count = 0
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.config.center == G.P_CENTERS.m_fm_amplified then
+                        amplified_count = amplified_count + 1
+                    end
+                end
+    
+                if amplified_count > 0 then
+                    card.ability.extra.streak_mult = card.ability.extra.streak_mult + (5 * amplified_count)
+                    return {
+                        mult = card.ability.extra.streak_mult,
+                        message = "Storm Growing!",
+                        sound = "fm_gathering_storm",
+                        colour = G.C.BLUE
+                    }
+                else
+                    card.ability.extra.state = "charging"
+                    card.ability.extra.charge = 0
+                    card.ability.extra.streak_mult = 0
+                    return {
+                        message = "Reset!",
+                        colour = G.C.BLUE
+                    }
+                end
+            end
+        end
+    
+        if context.after and card.ability.extra.state == "ready" then
+            local normal_cards = {}
+            for _, handCard in ipairs(G.hand.cards) do
+                if handCard.ability.set ~= "Enhanced" then
+                    table.insert(normal_cards, handCard)
+                end
+            end
+    
+            for i = 1, math.min(3, #normal_cards) do
+                local card_index = math.random(#normal_cards)
+                local target_card = normal_cards[card_index]
+                SMODS.calculate_effect({
+                    message = "Amplified!",
+                    sound = "fm_amplified",
+                    colour = G.C.BLUE
+                }, target_card)
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.3,
+                    func = function()
+                        target_card:flip()
+                        target_card:set_ability(G.P_CENTERS.m_fm_amplified)
+                        target_card:flip()
+                        return true
+                    end
+                }))
+                table.remove(normal_cards, card_index)
+            end
+            card.ability.extra.state = "active"
         end
     end
 }
