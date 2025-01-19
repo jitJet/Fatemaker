@@ -4,7 +4,7 @@ SMODS.Enhancement {
         name = "Transcendent",
         text = {
             "{X:dark_edition,C:white}PRISMATIC{}",
-            "When scored, either {C:attention}quadruple{} the lower",
+            "When scored, either {C:attention}triple{} the lower",
             "value between scored {C:chips}Chips{} or {C:mult}Mult{},",
             "or gain {X:mult,C:white}X1.5{} Mult for each",
             "Light, Dark or Prismatic card played"
@@ -28,15 +28,15 @@ SMODS.Enhancement {
             if pseudorandom('finalized') < G.GAME.probabilities.normal / card.ability.extra.denom then
                 if hand_chips < hand_mult then
                     return {
-                        chips = hand_chips * 3,
-                        message = "X4 Scored Chips",
+                        chips = hand_chips * 2,
+                        message = "X3 Scored Chips",
                         sound = "fm_transcendent",
                         colour = G.C.DARK_EDITION
                     }
                 else
                     return {
-                        mult = hand_mult * 3,
-                        message = "X4 Scored Mult",
+                        mult = hand_mult * 2,
+                        message = "X3 Scored Mult",
                         sound = "fm_transcendent",
                         colour = G.C.DARK_EDITION
                     }

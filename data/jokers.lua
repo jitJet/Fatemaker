@@ -50,10 +50,10 @@ SMODS.Joker{
     loc_txt = {
         name = "Well of Radiance",
         text = {
-            "Charge with 5 {C:orange}Solar{} cards.",
-            "Once charged, win a blind per ante",
-            "to ready. Next blind's first hand will",
-            "be half {C:attention}Radiant{} and {C:attention}Restoration{}.",
+            "Charge with 5 {C:attention}Solar{} cards.",
+            "Once charged and once per ante,",
+            "win a Blind to turn your",
+            "hand into half {C:attention}Radiant{} and {C:attention}Restoration{} cards",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -129,7 +129,7 @@ SMODS.Joker{
             }
         end
         
-        if context.before and card.ability.extra.state == "primed" and #G.hand.cards > 0 then
+        if not context.before and card.ability.extra.state == "primed" and #G.hand.cards > 0 then
             local normal_cards = {}
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.ability.set ~= "Enhanced" then
@@ -140,20 +140,38 @@ SMODS.Joker{
             if #normal_cards >= 2 then
                 local half = math.floor(#normal_cards / 2)
                 for i = 1, half do
-                    normal_cards[i]:set_ability(G.P_CENTERS.m_fm_radiant)
-                    card_eval_status_text(normal_cards[i], 'extra', nil, nil, nil, {
+                    normal_cards[i]:flip()
+                    SMODS.calculate_effect({
                         message = "Radiant!",
                         sound = "fm_well_of_radiance",
                         colour = G.C.ORANGE
-                    })
+                    }, normal_cards[i])
+                    G.E_MANAGER:add_event(Event({
+                        trigger = 'after',
+                        delay = 0.3,
+                        func = function()
+                            normal_cards[i]:set_ability(G.P_CENTERS.m_fm_radiant)
+                            normal_cards[i]:flip()
+                            return true
+                        end
+                    }))
                 end
                 for i = half + 1, #normal_cards do
-                    normal_cards[i]:set_ability(G.P_CENTERS.m_fm_restoration)
-                    card_eval_status_text(normal_cards[i], 'extra', nil, nil, nil, {
+                    normal_cards[i]:flip()
+                    SMODS.calculate_effect({
                         message = "Restored!",
                         sound = "fm_well_of_radiance",
                         colour = G.C.ORANGE
-                    })
+                    }, normal_cards[i])
+                    G.E_MANAGER:add_event(Event({
+                        trigger = 'after',
+                        delay = 0.3,
+                        func = function()
+                            normal_cards[i]:set_ability(G.P_CENTERS.m_fm_restoration)
+                            normal_cards[i]:flip()
+                            return true
+                        end
+                    }))
                 end
             end
             
@@ -168,10 +186,10 @@ SMODS.Joker{
     loc_txt = {
         name = "Golden Gun",
         text = {
-            "Charge with 5 {C:orange}Solar{} cards.",
+            "Charge with 5 {C:attention}Solar{} cards.",
             "Once charged, next hand played sets",
             "number of retriggers. Then, next hand",
-            "with {C:orange}Solar{} cards will retrigger those",
+            "with {C:attention}Solar{} cards will retrigger those",
             "cards that many times.",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
@@ -300,10 +318,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Thundercrash",
         text = {
-            "If a [suit] is played,",
-            "the highest card gains {C:blue}500%{} chip worth",
-            "and {C:blue}jolts{} played unenhanced cards.",
-            "Suit changes each round."
+            "Charge with 5 {C:blue}Arc{} cards.",
+            "When charged and {C:attention}#1#{} is played,",
+            "highest card gains {C:blue}50 times{} the chips and",
+            "{C:blue}jolts{} unenhanced cards",
+            "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -315,9 +334,108 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=2, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging",
+            target_suit = "Hearts"
+        }
+    },
+    init = function(self)
+        local suits = {"Hearts", "Diamonds", "Spades", "Clubs"}
+        self.ability.extra.target_suit = suits[math.random(#suits)]
+    end,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 
+            card.ability.extra.target_suit,
+            card.ability.extra.state == "charging" and 
+                card.ability.extra.charge .. "/5 Charging" or "Ready!"
+        }}
+    end,
     calculate = function(self, card, context)
+        if context.end_of_round then
+            local suits = {"Hearts", "Diamonds", "Spades", "Clubs"}
+            card.ability.extra.target_suit = suits[math.random(#suits)]
+        end
+ 
         if context.joker_main then
+            if card.ability.extra.state == "charging" then
+                local arc_count = 0
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.config.center == G.P_CENTERS.m_fm_jolt or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_amplified or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_blinded then
+                        arc_count = arc_count + 1
+                    end
+                end
+                
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + arc_count)
+                
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.BLUE
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.BLUE
+                    }
+                end
+            end
             
+            if card.ability.extra.state == "ready" then
+                local highest_card = nil
+                local has_target_suit = false
+                
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.base.suit == card.ability.extra.target_suit then
+                        has_target_suit = true
+                        if not highest_card or scoringCard:get_id() > highest_card:get_id() then
+                            highest_card = scoringCard
+                        end
+                    end
+                end
+                
+                if has_target_suit then
+                    for _, scoringCard in ipairs(context.scoring_hand) do
+                        SMODS.calculate_effect({
+                            message = "Jolted!",
+                            sound = "fm_jolt",
+                            colour = G.C.BLUE
+                        }, scoringCard)
+                        G.E_MANAGER:add_event(Event({
+                            trigger = 'after',
+                            delay = 0.3,
+                            func = function()
+                                scoringCard:flip()
+                                scoringCard:set_ability(G.P_CENTERS.m_fm_jolt)
+                                scoringCard:flip()
+                                return true
+                            end
+                        }))
+                    end                    
+                
+                    -- Reset charge first
+                    card.ability.extra.state = "charging"
+                    card.ability.extra.charge = 0
+                
+                    -- Then apply bonus chips to highest card
+                    if highest_card then
+                        card_eval_status_text(highest_card, 'extra', nil, nil, nil, {
+                            message = "Crashed!",
+                            sound = "fm_thundercrash",
+                            colour = G.C.BLUE
+                        })
+                        return {
+                            card = highest_card,
+                            chips = highest_card:get_id() * 50
+                        }
+                    end
+                end
+            end
         end
     end
 }

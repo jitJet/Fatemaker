@@ -47,7 +47,7 @@ SMODS.Enhancement {
         text = {
             "{C:purple}VOID{}",
             "Discarding cards adjacent",
-            "to it will grant {C:mult}+5{} Mult",
+            "to it will grant {C:mult}+3{} Mult",
             "Resets when played",
             "{C:inactive}(Currently {C:red}+#1#{C:inactive} Mult)"
         }
@@ -64,10 +64,10 @@ SMODS.Enhancement {
                 if handCard == card then
                     local bonus = 0
                     if i > 1 and table.contains(context.full_hand, G.hand.cards[i-1]) then
-                        bonus = bonus + 5
+                        bonus = bonus + 3
                     end
                     if i < #G.hand.cards and table.contains(context.full_hand, G.hand.cards[i+1]) then
-                        bonus = bonus + 5
+                        bonus = bonus + 3
                     end
                     if bonus > 0 and card.ability.extra.mult then
                         card_eval_status_text(card, 'extra', nil, nil, nil,

@@ -50,9 +50,8 @@ SMODS.Enhancement {
         text = {
             "{C:blue}ARC{}",
             "When not played, this card gains",
-            "{C:chips}+20%{} chips on top of each",
-            "unplayed card's chip worth and",
-            "{C:mult}+5{} Mult for each one",
+            "each unplayed card's chip worth",
+            "and {C:mult}+2{} Mult for each one",
             "Bonuses applied when scored",
             "{C:inactive}(Currently {C:chips}+#1#{C:inactive} chips",
             "{C:inactive}and {C:mult}+#2#{C:inactive} Mult)"
@@ -77,8 +76,8 @@ SMODS.Enhancement {
             
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard ~= card then
-                    chips_bonus = chips_bonus + math.floor(handCard:get_id() * 1.2)
-                    mult_bonus = mult_bonus + 5
+                    chips_bonus = chips_bonus + math.floor(handCard:get_id())
+                    mult_bonus = mult_bonus + 2
                 end
             end
             
