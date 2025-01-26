@@ -1,11 +1,11 @@
-SMODS.Shader({ key = 'veiled', path = 'veiled.fs' })
+SMODS.Shader({ key = 'sunbreaker', path = 'sunbreaker.fs' })
 
 SMODS.Edition({
-    key = "veiled",
-    shader = "veiled",
+    key = "sunbreaker",
+    shader = "sunbreaker",
     loc_txt = {
-        name = "Veiled",
-        label = "Veiled",
+        name = "Sunbreaker",
+        label = "Sunbreaker",
         text = {
             "Nothing yet!"
         }

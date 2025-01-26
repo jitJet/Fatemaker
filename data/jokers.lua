@@ -553,8 +553,13 @@ SMODS.Joker{
     loc_txt = {
         name = "Ward of Dawn",
         text = {
-            "While at least one Overshield card is in hand,",
-            "gain {C:mult}+10{} Mult for each Void card scored"
+            "Charge with 5 {C:purple}Void{} cards.",
+            "When charged, grants +10 Mult per",
+            "{C:purple}Void{} card scored while an",
+            "{C:purple}Overshield{} card is in hand.",
+            "If hand has 3+ {C:purple}Overshield{} cards,",
+            "double this bonus.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -565,10 +570,93 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging"
+        }
+     },
+     loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        else
+            return { vars = { "Active!" } }
+        end
+    end,
     pos = {x=4, y=1},
     calculate = function(self, card, context)
         if context.joker_main then
-            
+            -- Charge with Void cards
+            if card.ability.extra.state == "charging" then
+                local void_count = 0
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_devour or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                        void_count = void_count + 1
+                    end
+                end
+     
+                if void_count > 0 then
+                    card.ability.extra.charge = math.min(5, card.ability.extra.charge + void_count)
+                    if card.ability.extra.charge >= 5 then
+                        card.ability.extra.state = "active"
+                        return {
+                            message = "Ready!",
+                            sound = "fm_super_ready",
+                            colour = G.C.PURPLE
+                        }
+                    else
+                        return {
+                            message = "Charging...",
+                            colour = G.C.PURPLE
+                        }
+                    end
+                end
+            end
+     
+            -- Active effect
+            if card.ability.extra.state == "active" then
+                local overshield_count = 0
+                for _, handCard in ipairs(G.hand.cards) do
+                    if handCard.config.center == G.P_CENTERS.m_fm_overshield then
+                        overshield_count = overshield_count + 1
+                    end
+                end
+     
+                if overshield_count > 0 then
+                    local void_count = 0
+                    for _, scoringCard in ipairs(context.scoring_hand) do
+                        if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
+                           scoringCard.config.center == G.P_CENTERS.m_fm_devour or
+                           scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                            void_count = void_count + 1
+                        end
+                    end
+                    
+                    if void_count > 0 then
+                        local bonus = void_count * 10
+                        if overshield_count >= 3 then
+                            bonus = bonus * 2
+                            return {
+                                message = "Empowered!",
+                                sound = "fm_ward_of_dawn",
+                                colour = G.C.PURPLE,
+                                mult = bonus,
+                            }
+                        end
+                        return {
+                            message = "Shielded!",
+                            sound = "fm_ward_of_dawn",
+                            colour = G.C.PURPLE,
+                            mult = bonus,
+                        }
+                    end
+                else
+                    card.ability.extra.state = "charging"
+                    card.ability.extra.charge = 0
+                end
+            end
         end
     end
 }
@@ -736,6 +824,57 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=0, y=2},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "transcendence",
+    loc_txt = {
+        name = "Transcendence",
+        text = {
+            "",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=2},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "meditation",
+    loc_txt = {
+        name = "Meditation",
+        text = {
+            "Play 7 cards of the same subclass",
+            "in a row to grant a Subclass Edition to a",
+            "card in hand"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = false,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=2},
+    soul_pos = {x=3, y=2},
     calculate = function(self, card, context)
         if context.joker_main then
             
