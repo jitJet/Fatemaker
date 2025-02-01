@@ -7,8 +7,8 @@ SMODS.Enhancement {
             "{C:spades}STASIS{}",
             "Has a {C:green}#1# in #2#{} chance of returning",
             "to hand after being played.",
-            "Will {C:attention}Freeze{} when played",
-            "with adjacent {C:attention}Slow{} cards"
+            "Will {C:spades}Freeze{} when played",
+            "with adjacent {C:spades}Slow{} cards"
         }
     },
     atlas = 'Enhancements',
@@ -73,7 +73,7 @@ SMODS.Enhancement {
             "{C:spades}STASIS{}",
             "Returns to hand up to {C:attention}2{} times.",
             "Cards of the same suit to the left",
-            "become {C:attention}Slowed{}",
+            "become {C:spades}Slowed{}",
             "{C:inactive}(Currently {C:attention}#1#{C:inactive}/2 returns)"
         }
     },
@@ -122,12 +122,9 @@ SMODS.Enhancement {
         name = "Shatter",
         text = {
             "{C:spades}STASIS{}",
-            "Has a {C:green}#2# in #3#{} chance of being",
-            "destroyed. Before being destroyed,",
-            "each scored {C:attention}Stasis{} card",
-            "grants {C:money}$3{} while this card",
-            "is in hand",
-            "{C:inactive}(Currently {C:money}$#1#{C:inactive})"
+            "Scoring {C:spades}Stasis{} cards grants",
+            "{C:money}$3{} each to this card. Has a {C:green}#2# in #3#{}",
+            "chance of being destroyed and granting {C:money}$#1#{}",
         }
     },
     atlas = 'Enhancements',
@@ -165,6 +162,46 @@ SMODS.Enhancement {
                 sound = 'fm_shatter',
                 colour = G.C.SUITS.Spades,
             }  
+        end
+    end
+}
+
+SMODS.Enhancement {
+    key = "stasis_crystal",
+    loc_txt = {
+        name = "Stasis Crystal",
+        text = {
+            "{C:stasis}STASIS{}",
+            "Scores {C:mult}+3{} Mult.",
+            "Each {C:attention}Freeze{} card scored adds",
+            "{C:mult}+5{} Mult to this card.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive} Mult)"
+        }
+    },
+    atlas = 'Enhancements',
+    pos = {x=3, y=5},
+    config = {
+        extra = {
+            stored_mult = 3,
+            hands_remaining = 3
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.stored_mult } }
+    end,
+    no_rank = true,
+    no_suit = true,
+    always_scores = true,
+    in_pool = function(self)
+        return false
+    end,
+    overrides_base_rank = true,
+    replace_base_card = true,
+    calculate = function(self, card, context)
+        if context.cardarea == G.play and context.main_scoring then
+            return {
+                mult = card.ability.extra.stored_mult
+            }
         end
     end
 }

@@ -34,3 +34,30 @@ pattern = "cards_destroyed[i]:start_dissolve()"
 position = "before"
 payload = "if cards_destroyed[i].should_shatter then cards_destroyed[i]:shatter() return true end"
 match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+match_indent = true
+position = 'at'
+pattern = '''
+if self.children.particles then self.children.particles:draw() end
+'''
+payload = '''
+if self.children.particles and not self.children.particles.behind then
+    if self.children.particles then self.children.particles:draw() end
+end
+'''
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+match_indent = true
+position = 'after'
+pattern = '''
+if not self.states.visible then return end
+'''
+payload = '''
+if self.children.particles and self.children.particles.behind then
+    if self.children.particles then self.children.particles:draw() end
+end
+'''

@@ -10,8 +10,8 @@ SMODS.Edition({
             "Nothing yet!"
         }
     },
-    disable_shadow = true,
-    disable_base_shader = true,
+    disable_shadow = false,
+    disable_base_shader = false,
     discovered = true,
     unlocked = true,
     config = {},

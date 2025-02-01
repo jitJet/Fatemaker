@@ -79,7 +79,7 @@ SMODS.Enhancement {
         text = {
             "{C:green}STRAND{}",
             "Each hand played stores {C:attention}1{} Strand Thread.",
-            "Has a {C:green}#2# in #3#{} chance of breaking.",
+            "Has a {C:green}#2# in #3#{} chance of breaking",
             "Once broken, 3 unplayed cards with the lowest ranks",
             "will increase in rank by number of",
             "stored Threads",

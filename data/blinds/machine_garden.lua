@@ -101,7 +101,6 @@ SMODS.Blind{
                     offset = {x = 0, y = -2.7},
                     major = G.play,
                 })
-                -- CHANGE THE SOUND LATER
                 play_sound("fm_machine_garden_gauge_fill")
                 G.play:juice_up(0.1, 0.2)
                 return true

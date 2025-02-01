@@ -33,7 +33,7 @@ SMODS.Sound({ vol = 0.6, key = "gathering_storm", path = "gathering_storm.ogg" }
 SMODS.Sound({ vol = 0.6, key = "ward_of_dawn", path = "ward_of_dawn.ogg" })
 SMODS.Sound({ vol = 0.6, key = "shadowshot", path = "shadowshot.ogg" })
 SMODS.Sound({ vol = 0.6, key = "glacial_quake", path = "glacial_quake.ogg" })
-SMODS.Sound({ vol = 0.6, key = "winters_wrath", path = "winters_wrath.ogg" })
+SMODS.Sound({ vol = 1, key = "winters_wrath", path = "winters_wrath.ogg" })
 SMODS.Sound({ vol = 0.6, key = "needlestorm", path = "needlestorm.ogg" })
 SMODS.Sound({ vol = 0.6, key = "bladefury", path = "bladefury.ogg" })
 SMODS.Sound({ vol = 0.6, key = "witnesss_shatter", path = "witnesss_shatter.ogg" })
