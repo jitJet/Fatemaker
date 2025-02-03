@@ -144,6 +144,7 @@ SMODS.Enhancement {
             for _, scoredCard in ipairs(context.scoring_hand) do
                 if scoredCard.config.center == G.P_CENTERS.m_fm_slow or
                    scoredCard.config.center == G.P_CENTERS.m_fm_freeze or
+                   scoredCard.config.center == G.P_CENTERS.m_fm_stasis_crystal or
                    scoredCard.config.center == G.P_CENTERS.m_fm_shatter then
                     card.ability.extra.money = card.ability.extra.money + 3
                     card_eval_status_text(card, 'extra', nil, nil, nil, {
@@ -171,36 +172,98 @@ SMODS.Enhancement {
     loc_txt = {
         name = "Stasis Crystal",
         text = {
-            "{C:stasis}STASIS{}",
+            "{C:spades}STASIS{}",
             "Scores {C:mult}+3{} Mult.",
-            "Each {C:attention}Freeze{} card scored adds",
+            "Each {C:spades}Freeze{} card scored adds",
             "{C:mult}+5{} Mult to this card.",
-            "{C:inactive}(Currently: {C:attention}#1#{C:inactive} Mult)"
+            "Destroyed after {C:attention}3{} played hands.",
+            "{C:inactive}({C:mult}#1#{C:inactive} hands left)",
+            "{C:inactive}(Currently: {C:mult}+#2#{C:inactive} Mult)"
         }
     },
     atlas = 'Enhancements',
-    pos = {x=3, y=5},
+    no_rank = true,
+    no_suit = true,
+    always_scores = true,
     config = {
         extra = {
             stored_mult = 3,
             hands_remaining = 3
         }
     },
-    loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.stored_mult } }
-    end,
-    no_rank = true,
-    no_suit = true,
-    always_scores = true,
-    in_pool = function(self)
-        return false
-    end,
+    pos = {x=3, y=5},
     overrides_base_rank = true,
     replace_base_card = true,
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.hands_remaining, card.ability.extra.stored_mult } }
+    end,
     calculate = function(self, card, context)
-        if context.cardarea == G.play and context.main_scoring then
+        -- Check for Freeze cards
+        if context.cardarea == G.hand and context.after then
+            local freeze_count = 0
+            for _, playedCard in ipairs(G.play.cards) do
+                if playedCard.config.center == G.P_CENTERS.m_fm_freeze then
+                    freeze_count = freeze_count + 1
+                end
+            end
+           
+            -- Decrement counter
+            if card.ability.extra.hands_remaining > 0 then
+                card.ability.extra.hands_remaining = card.ability.extra.hands_remaining - 1
+            end
+           
+            -- Add bonus if Freeze cards present
+            if freeze_count > 0 then
+                card.ability.extra.stored_mult = card.ability.extra.stored_mult + (5 * freeze_count)
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.3,
+                    func = function()
+                        return {
+                            message = "Reinforced!",
+                            sound = "fm_shatter",
+                            colour = G.C.SUITS.Spades
+                        }
+                    end
+                }))
+            end
+        end
+     
+        -- Handle final scoring and destruction after delay
+        if context.cardarea == G.hand and context.main_scoring and card.ability.extra.hands_remaining <= 0 then
+            local final_mult = card.ability.extra.stored_mult
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.4,
+                func = function()
+                    card:start_dissolve({G.C.SUITS.Spades})
+                    return true
+                end
+            }))
             return {
-                mult = card.ability.extra.stored_mult
+                mult = final_mult,
+                message = "Shattered!",
+                sound = "fm_shatter",
+                colour = G.C.SUITS.Spades
+            }
+        end
+     
+        -- Normal scoring when played
+        if context.cardarea == G.play and context.main_scoring then
+            local current_mult = card.ability.extra.stored_mult
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.4,
+                func = function()
+                    card:start_dissolve({G.C.SUITS.Spades})
+                    return true
+                end
+            }))
+            return {
+                mult = current_mult,
+                message = "Shattered!",
+                sound = "fm_shatter",
+                colour = G.C.SUITS.Spades
             }
         end
     end

@@ -141,7 +141,9 @@ SMODS.Enhancement {
                     end
                 }))
             end
-            card.should_shatter = true
+            return{
+                remove = true
+            }
         end
     end
 }

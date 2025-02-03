@@ -71,6 +71,7 @@ SMODS.Blind{
                        card.config.center == G.P_CENTERS.m_fm_dissected or
                        card.config.center == G.P_CENTERS.m_fm_slow or
                        card.config.center == G.P_CENTERS.m_fm_freeze or
+                       card.config.center == G.P_CENTERS.m_fm_stasis_crystal or
                        card.config.center == G.P_CENTERS.m_fm_shatter or
                        card.config.center == G.P_CENTERS.m_fm_tangle or
                        card.config.center == G.P_CENTERS.m_fm_wovenmail or

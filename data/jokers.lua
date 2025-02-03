@@ -693,13 +693,13 @@ SMODS.Sticker {
                     if self.config.extra.uses_remaining > 0 then
                         if i > 1 then
                             G.hand.cards[i-1]:flip()
-                            play_sound("fm_primed")
+                            play_sound("fm_void_anchor")
                             G.hand.cards[i-1]:set_ability(G.P_CENTERS.m_fm_volatile)
                             G.hand.cards[i-1]:flip()
                         end
                         if i < #G.hand.cards then
                             G.hand.cards[i+1]:flip()
-                            play_sound("fm_primed")
+                            play_sound("fm_void_anchor")
                             G.hand.cards[i+1]:set_ability(G.P_CENTERS.m_fm_volatile)
                             G.hand.cards[i+1]:flip() 
                         end
@@ -709,7 +709,7 @@ SMODS.Sticker {
                     -- Handle countdown and destruction of the card
                     self.config.extra.hands_remaining = self.config.extra.hands_remaining - 1
                     if self.config.extra.hands_remaining <= 0 then
-                        card:start_dissolve()
+                        card:start_dissolve({G.C.PURPLE})
                     end
                     break
                 end
@@ -767,65 +767,61 @@ SMODS.Joker{
     end,
     calculate = function(self, card, context)
         if context.joker_main then
-            if card.ability.extra.state == "charging" then
-                local void_count = 0
-                for _, scoringCard in ipairs(context.scoring_hand) do
-                    if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_devour or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
-                        void_count = void_count + 1
-                    end
+            local void_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_devour or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                    void_count = void_count + 1
                 end
+            end
      
-                if void_count > 0 then
-                    card.ability.extra.charge = math.min(5, card.ability.extra.charge + void_count)
-                    if card.ability.extra.charge >= 5 then
-                        card.ability.extra.state = "ready"
-                        local eval = function() return card.ability.extra.state == "ready" end
-                        juice_card_until(card, eval, true)
-                        return {
-                            message = "Ready!",
-                            sound = "fm_super_ready",
-                            colour = G.C.PURPLE
-                        }
-                    else
-                        return {
-                            message = "Charging...",
-                            colour = G.C.PURPLE
-                        }
-                    end
-                end
-            end 
-            if context.after and card.ability.extra.state == "ready" then
-                local available_cards = {}
-                for _, handCard in ipairs(G.hand.cards) do
-                    table.insert(available_cards, handCard)
-                end
-            
-                if #available_cards > 0 then
-                    local target_card = pseudorandom_element(available_cards, pseudoseed('shadowshot'))
-
-                    SMODS.calculate_effect({
-                        message = "Tethered!",
-                        sound = "fm_shadowshot",
+            if void_count > 0 and card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + void_count)
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
                         colour = G.C.PURPLE
-                    }, target_card)
-
-                    target_card.void_anchored = true
-                    G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.15,
-                        func = function()
-                            target_card:juice_up()
-                            SMODS.Stickers.fm_void_anchor:apply(target_card, true)
-                            SMODS.Stickers.fm_void_anchor.config.extra.uses_remaining = 3
-                            target_card.void_anchored = nil
-                            card.ability.extra.state = "charging"
-                            card.ability.extra.charge = 0
-                            return true
-                        end
-                    }))
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.PURPLE
+                    }
                 end
+            end
+        end
+        if context.after and card.ability.extra.state == "ready" then
+            local available_cards = {}
+            for _, handCard in ipairs(G.hand.cards) do
+                table.insert(available_cards, handCard)
+            end
+        
+            if #available_cards > 0 then
+                local target_card = pseudorandom_element(available_cards, pseudoseed('shadowshot'))
+
+                SMODS.calculate_effect({
+                    message = "Tethered!",
+                    sound = "fm_shadowshot",
+                    colour = G.C.PURPLE
+                }, target_card)
+
+                target_card.void_anchored = true
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.15,
+                    func = function()
+                        target_card:juice_up()
+                        SMODS.Stickers.fm_void_anchor:apply(target_card, true)
+                        SMODS.Stickers.fm_void_anchor.config.extra.uses_remaining = 3
+                        target_card.void_anchored = nil
+                        card.ability.extra.state = "charging"
+                        card.ability.extra.charge = 0
+                        return true
+                    end
+                }))
             end
         end
     end
@@ -901,6 +897,7 @@ SMODS.Joker{
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_slow or
                        scoringCard.config.center == G.P_CENTERS.m_fm_freeze or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_stasis_crystal or
                        scoringCard.config.center == G.P_CENTERS.m_fm_shatter then
                         stasis_count = stasis_count + 1
                     end
@@ -1028,11 +1025,12 @@ SMODS.Joker{
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_slow or
                    scoringCard.config.center == G.P_CENTERS.m_fm_freeze or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_stasis_crystal or
                    scoringCard.config.center == G.P_CENTERS.m_fm_shatter then
                     stasis_count = stasis_count + 1
                 end
             end
-    
+     
             if stasis_count > 0 and card.ability.extra.state == "charging" then
                 card.ability.extra.charge = math.min(5, card.ability.extra.charge + stasis_count)
                 if card.ability.extra.charge >= 5 then
@@ -1040,36 +1038,40 @@ SMODS.Joker{
                     return {
                         message = "Ready!",
                         sound = "fm_super_ready",
-                        colour = G.C.SPADES
+                        colour = G.C.SUITS.Spades
                     }
                 else
                     return {
                         message = "Charging...",
-                        colour = G.C.SPADES
+                        colour = G.C.SUITS.Spades
                     }
                 end
             end
         end
-    
-        if context.after and card.ability.extra.state == "ready" then
+     
+        if card.ability.extra.state == "ready" and context.after then
             for i = 1, 3 do
-                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-                local crystal = Card(G.play.T.x + G.play.T.w / 2, G.play.T.y, G.CARD_W, G.CARD_H, 
-                                    G.P_CARDS.empty, G.P_CENTERS.m_fm_stasis_crystal, {
-                    playing_card = G.playing_card
-                })
-                
+                local crystal = Card(G.hand.T.x + (i-2)*G.CARD_W, G.hand.T.y, 
+                                  G.CARD_W, G.CARD_H, G.P_CARDS.empty, 
+                                  G.P_CENTERS.m_fm_stasis_crystal)
                 crystal:start_materialize({G.C.SECONDARY_SET.Enhanced})
                 draw_card(G.play, G.hand, 90, 'up', false, crystal)
-
-                return {
-                    message = "Quaked!",
-                    sound = "fm_glacial_quake",
-                    colour = G.C.SUITS.Spades
-                }
             end
+            
             card.ability.extra.state = "charging"
             card.ability.extra.charge = 0
+            
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.3,
+                func = function()
+                    return {
+                        message = "Quaked!",
+                        sound = "fm_glacial_quake",
+                        colour = G.C.SUITS.Spades
+                    }
+                end
+            }))
         end
     end
 }
@@ -1103,24 +1105,117 @@ SMODS.Joker{
     loc_txt = {
         name = "Bladefury",
         text = {
-            "",
+            "Charge with 5 {C:green}Strand{} cards.",
+            "When charged, playing a {C:attention}Pair{} will",
+            "slice both cards into equal halves,",
+            "cloning them but with halved ranks.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
     discovered = true,
     pos = {x=9, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging"
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        else
+            return { vars = { "Ready!" } }
+        end
+    end,
     calculate = function(self, card, context)
         if context.joker_main then
-            
+            if card.ability.extra.state == "charging" then
+                local strand_count = 0
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    if scoringCard.config.center == G.P_CENTERS.m_fm_tangle or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_unravel or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_wovenmail then
+                        strand_count = strand_count + 1
+                    end
+                end
+     
+                if strand_count > 0 then
+                    card.ability.extra.charge = math.min(5, card.ability.extra.charge + strand_count)
+                    if card.ability.extra.charge >= 5 then
+                        card.ability.extra.state = "ready"
+                        local eval = function() return card.ability.extra.state == "ready" end
+                        juice_card_until(card, eval, true)
+                        return {
+                            message = "Ready!",
+                            sound = "fm_super_ready",
+                            colour = G.C.GREEN
+                        }
+                    else
+                        return {
+                            message = "Charging...",
+                            colour = G.C.GREEN
+                        }
+                    end
+                end
+            end
+
+            if card.ability.extra.state == "ready" and next(context.poker_hands["Pair"]) then
+                for _, playCard in ipairs(G.play.cards) do
+                    playCard.to_slice = true
+                end
+     
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.5,
+                    func = function()
+                        for _, playCard in ipairs(G.play.cards) do
+                            if playCard.to_slice then
+                                local new_rank = math.ceil(playCard.base.id / 2)
+                                local suit_prefix = string.sub(playCard.base.suit, 1, 1)..'_'
+                                local rank_suffix = new_rank < 10 and tostring(new_rank)
+                                    or new_rank == 10 and 'T'
+                                    or new_rank == 11 and 'J'
+                                    or new_rank == 12 and 'Q'
+                                    or new_rank == 13 and 'K'
+                                    or 'A'
+    
+     
+                                for j = 1, 2 do
+                                    G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                                    local new_card = copy_card(playCard, nil, nil, G.playing_card)
+                                    new_card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                                    new_card.T.x = playCard.T.x + (j*2-3)*G.CARD_W
+                                    table.insert(G.playing_cards, new_card)
+                                    G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                    draw_card(G.play, G.deck, 90, 'up', nil, new_card)
+                                    new_card:start_materialize()
+                                end
+
+                                playCard:start_dissolve({G.C.GREEN})
+                            end
+                        end
+                        return true
+                    end
+                }))
+     
+                card.ability.extra.state = "charging"
+                card.ability.extra.charge = 0
+                return {
+                    message = "Sliced!",
+                    sound = "fm_bladefury",
+                    colour = G.C.GREEN
+                }
+            end
         end
     end
-}
+ }
 
 SMODS.Joker{
     key = "witnesss_shatter",

@@ -47,6 +47,7 @@ SMODS.Enhancement {
                     if playedCard.config.center == G.P_CENTERS.m_fm_transcendent or
                        playedCard.config.center == G.P_CENTERS.m_fm_slow or
                        playedCard.config.center == G.P_CENTERS.m_fm_freeze or
+                       playedCard.config.center == G.P_CENTERS.m_fm_stasis_crystal or
                        playedCard.config.center == G.P_CENTERS.m_fm_shatter or
                        playedCard.config.center == G.P_CENTERS.m_fm_unravel or
                        playedCard.config.center == G.P_CENTERS.m_fm_wovenmail or

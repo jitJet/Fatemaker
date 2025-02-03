@@ -146,31 +146,6 @@ SMODS.Enhancement {
             }
         end
         if context.destroying_card and card.ability.extra.mult > 0 then
-            -- local voidParticles = {}
-            -- for i = 1, 2 do
-            --     voidParticles[i] = Particles(1, 1, 0, 0, {
-            --         timer = 0.05,
-            --         scale = 0.3 * i,
-            --         initialize = true,
-            --         lifespan = 1,
-            --         speed = 4 * i,
-            --         padding = -1,
-            --         attach = G.hand.highlighted[1],
-            --         colours = {G.C.WHITE, lighten(G.C.PURPLE, 0.5)},
-            --         fill = true,
-            --     })
-            -- end
-            -- G.E_MANAGER:add_event(Event({
-            --     trigger = 'after',
-            --     delay = 0.1,
-            --     func = function ()
-            --         for i = 1, #voidParticles do
-            --             voidParticles[i].fade_alpha = 0
-            --             voidParticles[i]:fade(0.3, 1)
-            --         end
-            --         return true
-            --     end
-            -- }))
             return {
                 message = 'Blasted!',
                 sound = 'fm_volatile',
