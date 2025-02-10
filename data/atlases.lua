@@ -34,3 +34,10 @@ SMODS.Atlas{
     px = 71,
     py = 95
 }
+
+SMODS.Atlas{
+    key = 'Boosters',
+    path = 'BFMBoosters.png',
+    px = 71,
+    py = 95
+}

@@ -7,9 +7,9 @@
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
-SMODS.load_file("data/overrides.lua")()
-SMODS.load_file("data/atlases.lua")()
-SMODS.load_file("data/sounds.lua")()
+assert(SMODS.load_file("data/overrides.lua"))()
+assert(SMODS.load_file("data/atlases.lua"))()
+assert(SMODS.load_file("data/sounds.lua"))()
 assert(SMODS.load_file("data/editions/voidwalker.lua"))()
 assert(SMODS.load_file("data/editions/sunbreaker.lua"))()
 -- assert(SMODS.load_file("data/editions/arcstrider.lua"))()
@@ -21,6 +21,7 @@ assert(SMODS.load_file("data/enhancements/strand.lua"))()
 assert(SMODS.load_file("data/enhancements/resonance.lua"))()
 assert(SMODS.load_file("data/enhancements/prismatic.lua"))()
 assert(SMODS.load_file("data/jokers.lua"))()
+assert(SMODS.load_file("data/boosters/void.lua"))()
 assert(SMODS.load_file("data/blinds/corrupted_wish.lua"))()
 assert(SMODS.load_file("data/blinds/machine_garden.lua"))()
 assert(SMODS.load_file("data/blinds/reshaped_edge.lua"))()
