@@ -24,8 +24,6 @@ SMODS.Enhancement {
                             card = card
                         }, handCard)
                         G.E_MANAGER:add_event(Event({
-                            trigger = 'after',
-                            delay = 0.2,
                             func = function ()
                                 handCard.debuff = nil
                                 return true

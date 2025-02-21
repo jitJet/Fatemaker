@@ -102,87 +102,80 @@ SMODS.Enhancement {
         name = "Restoration",
         text = {
             "{C:attention}SOLAR{}",
-            "Card's rank increases by 1",
-            "after each hand played",
-            "Resets after playing"
+            "Adjacent cards to it will rank up",
+            "if they share the same suit"
         }
     },
     atlas = 'Enhancements',
     config = {
         extra = {
-            base_rank = 0,
-            current_rank = 0,
-            hands_seen = 0
+            rank_increase = 0
         }
     },
-    set_ability = function(self, card, initial)
-        card.ability.extra = {
-            base_rank = 0,
-            current_rank = 0,
-            hands_seen = 0
-        }
-    end,
     pos = {x=2, y=3},
     calculate = function(self, card, context)
-        if context.cardarea == G.hand and context.after and not context.end_of_round then
-            if card.ability.extra.base_rank == 0 then
-                card.ability.extra.base_rank = card:get_id()
-                card.ability.extra.current_rank = card:get_id()
+        -- Check adjacent cards after scoring
+        if context.final_scoring_step and context.cardarea == G.hand then
+            for i, handCard in ipairs(G.hand.cards) do
+                if handCard == card then
+                    -- Check and rank up left card
+                    if i > 1 and G.hand.cards[i-1].base.suit == card.base.suit then
+                        local leftCard = G.hand.cards[i-1]
+                        local new_rank = math.min(leftCard:get_id() + 1, 14)
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                if leftCard.area == G.hand then
+                                    leftCard:highlight()
+                                    leftCard:flip()
+                                    leftCard:set_base(G.P_CARDS[string.sub(leftCard.base.suit, 1, 1)..'_' .. 
+                                        (new_rank < 10 and tostring(new_rank) or
+                                         new_rank == 10 and 'T' or
+                                         new_rank == 11 and 'J' or
+                                         new_rank == 12 and 'Q' or
+                                         new_rank == 13 and 'K' or 'A')])
+                                    leftCard:flip()
+                                    leftCard:highlight(false)
+                                    SMODS.calculate_effect({
+                                        message = "Rank Up!",
+                                        sound = "fm_restoration",
+                                        colour = G.C.ORANGE
+                                    }, leftCard)
+                                end
+                                return true
+                            end
+                        }))
+                    end
+     
+                    -- Check and rank up right card
+                    if i < #G.hand.cards and G.hand.cards[i+1].base.suit == card.base.suit then
+                        local rightCard = G.hand.cards[i+1]
+                        local new_rank = math.min(rightCard:get_id() + 1, 14)
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                if rightCard.area == G.hand then
+                                    rightCard:highlight()
+                                    rightCard:flip()
+                                    rightCard:set_base(G.P_CARDS[string.sub(rightCard.base.suit, 1, 1)..'_' .. 
+                                        (new_rank < 10 and tostring(new_rank) or
+                                         new_rank == 10 and 'T' or
+                                         new_rank == 11 and 'J' or
+                                         new_rank == 12 and 'Q' or
+                                         new_rank == 13 and 'K' or 'A')])
+                                    rightCard:flip()
+                                    rightCard:highlight(false)
+                                    SMODS.calculate_effect({
+                                        message = "Rank Up!",
+                                        sound = "fm_restoration",
+                                        colour = G.C.ORANGE
+                                    }, rightCard)
+                                end
+                                return true
+                            end
+                        }))
+                    end
+                    break
+                end
             end
-            card.ability.extra.current_rank = math.min(card.ability.extra.current_rank + 1, 14)
-            local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
-            local rank_suffix = card.ability.extra.current_rank < 10 and tostring(card.ability.extra.current_rank)
-                or card.ability.extra.current_rank == 10 and 'T'
-                or card.ability.extra.current_rank == 11 and 'J'
-                or card.ability.extra.current_rank == 12 and 'Q'
-                or card.ability.extra.current_rank == 13 and 'K'
-                or 'A'
-            card:flip()
-            SMODS.calculate_effect({
-                message = "Rank Up!",
-                sound = "fm_restoration",
-                colour = G.C.ORANGE
-            }, card)
-            G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.3,
-                func = function()
-                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-                    card:flip()
-                    return true
-                end
-            }))
-        end
- 
-        if context.cardarea == G.play and context.main_scoring then
-            local original_rank = card.ability.extra.base_rank
-            return {
-                func = function()
-                    local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
-                    local rank_suffix = original_rank < 10 and tostring(original_rank)
-                        or original_rank == 10 and 'T'
-                        or original_rank == 11 and 'J'
-                        or original_rank == 12 and 'Q'
-                        or original_rank == 13 and 'K'
-                        or 'A'
-                    card:flip()
-                    SMODS.calculate_effect({
-                        message = "Reset!",
-                        sound = "fm_restoration",
-                        colour = G.C.ORANGE
-                    }, card)
-                    G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.3,
-                        func = function()
-                            card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-                            card.ability.extra.current_rank = original_rank
-                            card:flip()
-                            return true
-                        end
-                    }))
-                end
-            }
         end
     end
 }

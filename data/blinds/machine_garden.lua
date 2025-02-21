@@ -186,12 +186,9 @@ SMODS.Blind{
                                     major = G.play,
                                     backdrop_colour = G.C.WHITE
                                 })
-                                -- CHANGE THE SOUND LATER
                                 play_sound("fm_machine_garden_tether_linked")
                                 G.play:juice_up(0.1, 0.2)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         for _, card in ipairs(G.hand.cards) do
                                             if card.config.center.key == "m_fm_powered_tether_light" or
@@ -354,7 +351,6 @@ SMODS.Sticker {
             for _, hand_card in ipairs(G.hand.cards) do
                 if hand_card.ability.fm_voltaic_overflow then
                     has_voltaic_in_hand = true
-                    print("Voltaic in hand")
                     break
                 end
             end
@@ -364,7 +360,6 @@ SMODS.Sticker {
             for _, voltaic_played_card in ipairs(G.play.cards) do
                 if voltaic_played_card.ability.fm_voltaic_overflow then
                     voltaic_played = voltaic_played + 1
-                    print("Voltaic played: " .. voltaic_played)
                 end
             end
      
@@ -509,8 +504,6 @@ SMODS.Consumable {
                     colour = G.C.BLUE
                 }, handCard)
                 G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.15,
                     func = function()
                         handCard:set_ability(G.P_CENTERS.m_fm_powered_tether_light)
                         return true
@@ -549,8 +542,6 @@ SMODS.Consumable {
             }, _card)
             _card.jolted = true
             G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.15,
                 func = function()
                     SMODS.Stickers.fm_voltaic_overflow:apply(_card, true)
                     _card.jolted = nil               
@@ -627,8 +618,6 @@ SMODS.Consumable {
                     colour = G.C.ORANGE
                 }, handCard)
                 G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.15,
                     func = function()
                         handCard:set_ability(G.P_CENTERS.m_fm_powered_tether_dark)
                         return true
@@ -667,8 +656,6 @@ SMODS.Consumable {
             }, _card)
             _card.jolted = true
             G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.15,
                 func = function()
                     SMODS.Stickers.fm_voltaic_overflow:apply(_card, true)
                     _card.jolted = nil               

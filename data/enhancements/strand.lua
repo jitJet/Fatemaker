@@ -108,6 +108,7 @@ SMODS.Enhancement {
                 colour = G.C.GREEN
             }
         end
+    
         if context.destroying_card and pseudorandom('unravel') < G.GAME.probabilities.normal / card.ability.extra.denom then
             local lowest_cards = {}
             for _, handCard in ipairs(G.hand.cards) do
@@ -115,34 +116,45 @@ SMODS.Enhancement {
             end
             table.sort(lowest_cards, function(a, b) return a.base.id < b.base.id end)
     
-            for i = 1, math.min(3, #lowest_cards) do
-                local handCard = lowest_cards[i]
-                handCard:flip()
-                SMODS.calculate_effect({
-                    message = string.format("+%d Rank!", card.ability.extra.threads),
-                    sound = "fm_unravel",
-                    colour = G.C.GREEN
-                }, handCard)
-                G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.3,
-                    func = function()
-                        local new_rank = math.min(handCard.base.id + card.ability.extra.threads, 14)
-                        local suit_prefix = string.sub(handCard.base.suit, 1, 1)..'_'
-                        local rank_suffix = new_rank < 10 and tostring(new_rank)
-                            or new_rank == 10 and 'T'
-                            or new_rank == 11 and 'J'
-                            or new_rank == 12 and 'Q'
-                            or new_rank == 13 and 'K'
-                            or 'A'
-                        handCard:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+            G.E_MANAGER:add_event(Event({
+                trigger = 'after',
+                delay = 0.3,
+                func = function()
+                    for i = 1, math.min(3, #lowest_cards) do
+                        local handCard = lowest_cards[i]
                         handCard:flip()
-                        return true
+                        SMODS.calculate_effect({
+                            message = string.format("+%d Rank!", card.ability.extra.threads),
+                            sound = "fm_unravel",
+                            colour = G.C.GREEN
+                        }, handCard)
+                        
+                        G.E_MANAGER:add_event(Event({
+                            trigger = 'after',
+                            delay = 0.2,
+                            func = function()
+                                local new_rank = math.min(handCard.base.id + card.ability.extra.threads, 14)
+                                local suit_prefix = string.sub(handCard.base.suit, 1, 1)..'_'
+                                local rank_suffix = new_rank < 10 and tostring(new_rank)
+                                    or new_rank == 10 and 'T'
+                                    or new_rank == 11 and 'J'
+                                    or new_rank == 12 and 'Q'
+                                    or new_rank == 13 and 'K'
+                                    or 'A'
+                                handCard:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                                handCard:flip()
+                                return true
+                            end
+                        }))
                     end
-                }))
-            end
-            return{
-                remove = true
+                    return true
+                end
+            }))
+            
+            return {
+                message = 'Unraveled!',
+                sound = 'fm_unravel',
+                colour = G.C.GREEN
             }
         end
     end

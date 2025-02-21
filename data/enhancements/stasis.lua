@@ -216,8 +216,6 @@ SMODS.Enhancement {
             if freeze_count > 0 then
                 card.ability.extra.stored_mult = card.ability.extra.stored_mult + (5 * freeze_count)
                 G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.3,
                     func = function()
                         return {
                             message = "Reinforced!",
@@ -228,13 +226,9 @@ SMODS.Enhancement {
                 }))
             end
         end
-     
-        -- Handle final scoring and destruction after delay
         if context.cardarea == G.hand and context.main_scoring and card.ability.extra.hands_remaining <= 0 then
             local final_mult = card.ability.extra.stored_mult
             G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.4,
                 func = function()
                     card:start_dissolve({G.C.SUITS.Spades})
                     return true
@@ -252,8 +246,6 @@ SMODS.Enhancement {
         if context.cardarea == G.play and context.main_scoring then
             local current_mult = card.ability.extra.stored_mult
             G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.4,
                 func = function()
                     card:start_dissolve({G.C.SUITS.Spades})
                     return true

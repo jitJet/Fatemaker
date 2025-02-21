@@ -120,8 +120,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, card)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         card:flip()
                                         return true
@@ -160,8 +158,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, card)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         card:flip()
                                         return true
@@ -200,8 +196,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, card)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         card:set_debuff(true)
                                         return true
@@ -238,8 +232,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, card)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         card:start_dissolve()
                                         return true
@@ -278,8 +270,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, joker)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         joker.start_dissolve()
                                         return true
@@ -315,8 +305,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, card)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         draw_card(G.hand, G.discard, 90, 'down', false, card)
                                         return true
@@ -355,8 +343,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, joker)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         joker:set_debuff(true)
                                         return true
@@ -394,8 +380,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, card)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         card:set_debuff(true)
                                         return true
@@ -428,8 +412,6 @@ SMODS.Blind{
                                         colour = G.C.BLACK
                                     }, card)
                                     G.E_MANAGER:add_event(Event({
-                                        trigger = 'after',
-                                        delay = 0.15,
                                         func = function()
                                             card:start_dissolve()
                                             return true
@@ -461,8 +443,6 @@ SMODS.Blind{
                                         colour = G.C.BLACK
                                     }, card)
                                     G.E_MANAGER:add_event(Event({
-                                        trigger = 'after',
-                                        delay = 0.15,
                                         func = function()
                                             draw_card(G.hand, G.discard, 90, 'down', false, card)
                                             return true
@@ -501,8 +481,6 @@ SMODS.Blind{
                                     colour = G.C.BLACK
                                 }, joker)
                                 G.E_MANAGER:add_event(Event({
-                                    trigger = 'after',
-                                    delay = 0.15,
                                     func = function()
                                         joker:set_debuff(true)
                                         return true
@@ -534,8 +512,6 @@ SMODS.Blind{
                                         colour = G.C.BLACK
                                     }, card)
                                     G.E_MANAGER:add_event(Event({
-                                        trigger = 'after',
-                                        delay = 0.15,
                                         func = function()
                                             card:start_dissolve()
                                             return true

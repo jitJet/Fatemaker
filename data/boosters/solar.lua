@@ -1,26 +1,26 @@
 SMODS.Booster({
-    key = "void",
+    key = "solar",
     loc_txt = {
-        name = "Void Pack",
+        name = "Solar Pack",
         text = {
             "Choose 1 of up to",
-            "3 {C:purple}Void{} cards to add",
+            "3 {C:attention}Solar{} cards to add",
             "to your deck",
             "Small chance for",
             "{C:dark_edition}Transcendent{} cards to spawn"
         },
-        group_name = "Void Pack"
+        group_name = "Solar Pack"
     },
     atlas = "Boosters",
-    pos = { x = 0, y = 0 },
+    pos = { x = 0, y = 1 },
     cost = 6,
     weight = 1,
     config = { extra = 3, choose = 1 },
     ease_background_colour = function(self)
-        ease_background_colour({ new_colour = G.C.PURPLE, special_colour = G.C.BLACK, contrast = 2 })
+        ease_background_colour({ new_colour = G.C.ORANGE, special_colour = G.C.RED, contrast = 2 })
     end,
     create_card = function(self, card, i)
-        local rng = pseudorandom('void_pack')
+        local rng = pseudorandom('solar_pack')
         local card_config
         if rng > 0.9 then
             card_config = {
@@ -31,12 +31,12 @@ SMODS.Booster({
                 enhancement = "m_fm_transcendent"
             }
         else
-            local void_enhancements = {
-                "m_fm_overshield",
-                "m_fm_volatile",
-                "m_fm_devour"
+            local solar_enhancements = {
+                "m_fm_radiant",
+                "m_fm_restoration",
+                "m_fm_scorch"
             }
-            local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
+            local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
             
             card_config = {
                 set = "Enhanced", 
@@ -62,25 +62,25 @@ SMODS.Booster({
 })
 
 SMODS.Booster({
-    key = "jumbo_void",
+    key = "jumbo_solar",
     loc_txt = {
-        name = "Jumbo Void Pack",
+        name = "Jumbo Solar Pack",
         text = {
             "Choose 1 of up to",
-            "5 {C:purple}Void{} cards to add",
+            "5 {C:attention}Solar{} cards to add",
             "to your deck",
             "Small chance for",
             "{C:dark_edition}Transcendent{} cards to spawn"
         },
-        group_name = "Void Pack"
+        group_name = "Solar Pack"
     },
     atlas = "Boosters",
-    pos = { x = 1, y = 0 },
+    pos = { x = 1, y = 1 },
     cost = 8,
     weight = 1,
     config = { extra = 5, choose = 1 },
     ease_background_colour = function(self)
-        ease_background_colour({ new_colour = G.C.PURPLE, special_colour = G.C.BLACK, contrast = 2 })
+        ease_background_colour({ new_colour = G.C.ORANGE, special_colour = G.C.RED, contrast = 2 })
     end,
     particles = function(self)
         G.booster_pack_sparkles = Particles(1, 1, 0, 0, {
@@ -91,14 +91,14 @@ SMODS.Booster({
             speed = 1.1,
             padding = -1,
             attach = G.ROOM_ATTACH,
-            colours = { G.C.BLACK, lighten(G.C.PURPLE, 0.4), lighten(G.C.PURPLE, 0.2), lighten(G.C.BLACK, 0.2) },
+            colours = { G.C.BLACK, lighten(G.C.ORANGE, 0.4), lighten(G.C.ORANGE, 0.2), lighten(G.C.ORANGE, 0.2) },
             fill = true
         })
         G.booster_pack_sparkles.fade_alpha = 1
         G.booster_pack_sparkles:fade(1, 0)
     end,
     create_card = function(self, card, i)
-        local rng = pseudorandom('jumbo_void_pack')
+        local rng = pseudorandom('jumbo_solar_pack')
         local card_config
         if rng > 0.9 then
             card_config = {
@@ -109,12 +109,12 @@ SMODS.Booster({
                 enhancement = "m_fm_transcendent"
             }
         else
-            local void_enhancements = {
-                "m_fm_overshield",
-                "m_fm_volatile",
-                "m_fm_devour"
+            local solar_enhancements = {
+                "m_fm_radiant",
+                "m_fm_restoration",
+                "m_fm_scorch"
             }
-            local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
+            local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
             
             card_config = {
                 set = "Enhanced", 
@@ -140,25 +140,25 @@ SMODS.Booster({
 })
 
 SMODS.Booster({
-    key = "mega_void",
+    key = "mega_solar",
     loc_txt = {
-        name = "Mega Void Pack",
+        name = "Mega Solar Pack",
         text = {
-            "Choose 2 of up to",
-            "5 {C:purple}Void{} cards to add",
+            "Choose 1 of up to",
+            "5 {C:attention}Solar{} cards to add",
             "to your deck",
             "Small chance for",
             "{C:dark_edition}Transcendent{} cards to spawn"
         },
-        group_name = "Void Pack"
+        group_name = "Solar Pack"
     },
     atlas = "Boosters",
-    pos = { x = 2, y = 0 },
+    pos = { x = 2, y = 1 },
     cost = 10,
     weight = 1,
     config = { extra = 5, choose = 2 },
     ease_background_colour = function(self)
-        ease_background_colour({ new_colour = G.C.PURPLE, special_colour = G.C.BLACK, contrast = 2 })
+        ease_background_colour({ new_colour = G.C.ORANGE, special_colour = G.C.RED, contrast = 2 })
     end,
     particles = function(self)
         G.booster_pack_sparkles = Particles(1, 1, 0, 0, {
@@ -169,34 +169,34 @@ SMODS.Booster({
             speed = 1.5,
             padding = -1,
             attach = G.ROOM_ATTACH,
-            colours = { G.C.BLACK, lighten(G.C.PURPLE, 0.4), lighten(G.C.PURPLE, 0.2), lighten(G.C.BLACK, 0.2) },
+            colours = { G.C.BLACK, lighten(G.C.ORANGE, 0.4), lighten(G.C.ORANGE, 0.2), lighten(G.C.ORANGE, 0.2) },
             fill = true
         })
         G.booster_pack_sparkles.fade_alpha = 1
         G.booster_pack_sparkles:fade(1, 0)
     end,
     create_card = function(self, card, i)
-        local rng = pseudorandom('mega_void_pack')
+        local rng = pseudorandom('mega_solar_pack')
         local card_config
         if rng > 0.9 then
             card_config = {
-                set = "Enhanced",
-                area = G.pack_cards,
+                set = "Enhanced", 
+                area = G.pack_cards, 
                 skip_materialize = true,
                 no_edition = false,
                 enhancement = "m_fm_transcendent"
             }
         else
-            local void_enhancements = {
-                "m_fm_overshield",
-                "m_fm_volatile",
-                "m_fm_devour"
+            local solar_enhancements = {
+                "m_fm_radiant",
+                "m_fm_restoration",
+                "m_fm_scorch"
             }
-            local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
+            local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
             
             card_config = {
-                set = "Enhanced",
-                area = G.pack_cards,
+                set = "Enhanced", 
+                area = G.pack_cards, 
                 skip_materialize = true,
                 no_edition = false,
                 enhancement = selected_enhancement

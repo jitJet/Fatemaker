@@ -77,8 +77,6 @@ SMODS.Enhancement {
                         colour = G.C.BLACK
                     }, target_card)
                     G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.3,
                         func = function()
                             target_card:change_suit(card.base.suit)
                             target_card:flip()

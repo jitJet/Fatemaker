@@ -131,8 +131,6 @@ SMODS.Joker{
                         colour = G.C.ORANGE
                     }, normal_cards[i])
                     G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.3,
                         func = function()
                             normal_cards[i]:set_ability(G.P_CENTERS.m_fm_radiant)
                             normal_cards[i]:flip()
@@ -148,8 +146,6 @@ SMODS.Joker{
                         colour = G.C.ORANGE
                     }, normal_cards[i])
                     G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.3,
                         func = function()
                             normal_cards[i]:set_ability(G.P_CENTERS.m_fm_restoration)
                             normal_cards[i]:flip()
@@ -388,8 +384,6 @@ SMODS.Joker{
                                 colour = G.C.BLUE
                             }, scoringCard)
                             G.E_MANAGER:add_event(Event({
-                                trigger = 'after',
-                                delay = 0.3,
                                 func = function()
                                     scoringCard:flip()
                                     scoringCard:set_ability(G.P_CENTERS.m_fm_jolt)
@@ -532,8 +526,6 @@ SMODS.Joker{
                     colour = G.C.BLUE
                 }, target_card)
                 G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.3,
                     func = function()
                         target_card:flip()
                         target_card:set_ability(G.P_CENTERS.m_fm_amplified)
@@ -810,8 +802,6 @@ SMODS.Joker{
 
                 target_card.void_anchored = true
                 G.E_MANAGER:add_event(Event({
-                    trigger = 'after',
-                    delay = 0.15,
                     func = function()
                         target_card:juice_up()
                         SMODS.Stickers.fm_void_anchor:apply(target_card, true)
@@ -1062,8 +1052,6 @@ SMODS.Joker{
             card.ability.extra.charge = 0
             
             G.E_MANAGER:add_event(Event({
-                trigger = 'after',
-                delay = 0.3,
                 func = function()
                     return {
                         message = "Quaked!",
@@ -1106,8 +1094,8 @@ SMODS.Joker{
         name = "Bladefury",
         text = {
             "Charge with 5 {C:green}Strand{} cards.",
-            "When charged, playing two cards only in {C:attention}Pair{}",
-            "or one card only in {C:attention}High Card{} will",
+            "When charged, playing a {C:attention}Pair{}",
+            "or a {C:attention}High Card{} will",
             "slice them into equivalent pairs,",
             "cloning them but with halved ranks.",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
@@ -1167,67 +1155,57 @@ SMODS.Joker{
                 end
             end
 
-            if card.ability.extra.state == "ready" and ((next(context.poker_hands["Pair"]) and #context.scoring_hand == 2) or (next(context.poker_hands["High Card"]) and #context.scoring_hand == 1)) then
-                for _, playCard in ipairs(context.scoring_hand) do  -- Use scoring_hand instead of play.cards
-                    -- Only slice cards that can be halved
-                    if playCard.base.id > 2 then
-                        playCard.to_slice = true
-                    end
-                end
-
-                -- Only proceed if valid cards to slice
-                local valid_slice = false
+            if card.ability.extra.state == "ready" and (next(context.poker_hands["Pair"]) or next(context.poker_hands["High Card"])) then
                 for _, playCard in ipairs(context.scoring_hand) do
-                    if playCard.to_slice then
-                        valid_slice = true
-                        break
+                    if playCard.base.id > 2 and not SMODS.always_scores(playCard) then
+                        playCard.should_destroy = true
                     end
                 end
-
-                if valid_slice then
-                    G.E_MANAGER:add_event(Event({
-                        trigger = 'after',
-                        delay = 0.5,
-                        func = function()
-                            for _, playCard in ipairs(context.scoring_hand) do
-                                if playCard.to_slice then
-                                    local new_rank = math.ceil(playCard.base.id / 2)
-                                    
-                                    -- Create new cards first, then remove original
-                                    for j = 1, 2 do
-                                        G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-                                        local new_card = copy_card(playCard, nil, nil, G.playing_card)
-                                        new_card:set_base(G.P_CARDS[string.sub(playCard.base.suit, 1, 1)..'_' .. 
-                                            (new_rank < 10 and tostring(new_rank) or
-                                                new_rank == 10 and 'T' or
-                                                new_rank == 11 and 'J' or
-                                                new_rank == 12 and 'Q' or
-                                                new_rank == 13 and 'K' or 'A')])
-                                        new_card.T.x = playCard.T.x + (j*2-3)*G.CARD_W
-                                        table.insert(G.playing_cards, new_card)
-                                        G.deck.config.card_limit = G.deck.config.card_limit + 1
-                                        draw_card(G.play, G.deck, 90, 'up', nil, new_card)
-                                        new_card:start_materialize()
-                                    end
-                                    draw_card(G.play, G.discard, 90, 'down', false, playCard)
+            
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        for _, playCard in ipairs(context.scoring_hand) do
+                            if playCard.base.id > 2 and not SMODS.always_scores(playCard) then
+                                local new_rank = math.ceil(playCard.base.id / 2)
+                                
+                                for j = 1, 2 do
+                                    G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                                    local new_card = copy_card(playCard, nil, nil, G.playing_card)
+                                    new_card:set_base(G.P_CARDS[string.sub(playCard.base.suit, 1, 1)..'_' .. 
+                                        (new_rank < 10 and tostring(new_rank) or
+                                            new_rank == 10 and 'T' or
+                                            new_rank == 11 and 'J' or
+                                            new_rank == 12 and 'Q' or
+                                            new_rank == 13 and 'K' or 'A')])
+                                    new_card.T.x = playCard.T.x + (j*2-3)*G.CARD_W
+                                    table.insert(G.playing_cards, new_card)
+                                    G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                    draw_card(G.play, G.deck, 90, 'up', nil, new_card)
+                                    new_card:start_materialize()
                                 end
                             end
-                            return true
                         end
-                    }))
-
-                    card.ability.extra.state = "charging"
-                    card.ability.extra.charge = 0
-                    return {
-                        message = "Sliced!",
-                        sound = "fm_bladefury",
-                        colour = G.C.GREEN
-                    }
-                end
+                        return true
+                    end
+                }))
+        
+                card.ability.extra.state = "charging"
+                card.ability.extra.charge = 0
+                return {
+                    message = "Sliced!",
+                    sound = "fm_bladefury",
+                    colour = G.C.GREEN
+                }
+            end
+        end
+            
+        if context.destroying_card then
+            if card.should_destroy then
+                return true
             end
         end
     end
- }
+}
 
 SMODS.Joker{
     key = "witnesss_shatter",
