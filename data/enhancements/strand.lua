@@ -78,7 +78,7 @@ SMODS.Enhancement {
         name = "Unravel",
         text = {
             "{C:green}STRAND{}",
-            "Each hand played stores {C:attention}1{} Strand Thread.",
+            "Each hand played stores {C:attention}1{} Thread.",
             "Has a {C:green}#2# in #3#{} chance of breaking",
             "Once broken, 3 unplayed cards with the lowest ranks",
             "will increase in rank by number of",
@@ -108,14 +108,14 @@ SMODS.Enhancement {
                 colour = G.C.GREEN
             }
         end
-    
+   
         if context.destroying_card and pseudorandom('unravel') < G.GAME.probabilities.normal / card.ability.extra.denom then
             local lowest_cards = {}
             for _, handCard in ipairs(G.hand.cards) do
                 table.insert(lowest_cards, handCard)
             end
-            table.sort(lowest_cards, function(a, b) return a.base.id < b.base.id end)
-    
+            table.sort(lowest_cards, function(a, b) return a:get_id() < b:get_id() end)
+   
             G.E_MANAGER:add_event(Event({
                 trigger = 'after',
                 delay = 0.3,
@@ -128,20 +128,29 @@ SMODS.Enhancement {
                             sound = "fm_unravel",
                             colour = G.C.GREEN
                         }, handCard)
-                        
+                       
                         G.E_MANAGER:add_event(Event({
                             trigger = 'after',
                             delay = 0.2,
                             func = function()
-                                local new_rank = math.min(handCard.base.id + card.ability.extra.threads, 14)
-                                local suit_prefix = string.sub(handCard.base.suit, 1, 1)..'_'
-                                local rank_suffix = new_rank < 10 and tostring(new_rank)
-                                    or new_rank == 10 and 'T'
-                                    or new_rank == 11 and 'J'
-                                    or new_rank == 12 and 'Q'
-                                    or new_rank == 13 and 'K'
-                                    or 'A'
-                                handCard:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+                                local current_rank = handCard.base.value
+                                local num_steps = card.ability.extra.threads
+                                
+                                local current_index = nil
+                                for idx, rank_key in ipairs(SMODS.Rank.obj_buffer) do
+                                    if rank_key == current_rank then
+                                        current_index = idx
+                                        break
+                                    end
+                                end
+                                
+                                if current_index then
+                                    local new_index = math.min(current_index + num_steps, #SMODS.Rank.obj_buffer)
+                                    local new_rank = SMODS.Rank.obj_buffer[new_index]
+                                    
+                                    SMODS.change_base(handCard, handCard.base.suit, new_rank)
+                                end
+                                
                                 handCard:flip()
                                 return true
                             end
@@ -150,7 +159,7 @@ SMODS.Enhancement {
                     return true
                 end
             }))
-            
+           
             return {
                 message = 'Unraveled!',
                 sound = 'fm_unravel',

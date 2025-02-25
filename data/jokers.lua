@@ -1156,39 +1156,34 @@ SMODS.Joker{
             end
 
             if card.ability.extra.state == "ready" and (next(context.poker_hands["Pair"]) or next(context.poker_hands["High Card"])) then
-                for _, playCard in ipairs(context.scoring_hand) do
-                    if playCard.base.id > 2 and not SMODS.always_scores(playCard) then
-                        playCard.should_destroy = true
-                    end
-                end
-            
                 G.E_MANAGER:add_event(Event({
                     func = function()
                         for _, playCard in ipairs(context.scoring_hand) do
                             if playCard.base.id > 2 and not SMODS.always_scores(playCard) then
-                                local new_rank = math.ceil(playCard.base.id / 2)
-                                
-                                for j = 1, 2 do
-                                    G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-                                    local new_card = copy_card(playCard, nil, nil, G.playing_card)
-                                    new_card:set_base(G.P_CARDS[string.sub(playCard.base.suit, 1, 1)..'_' .. 
-                                        (new_rank < 10 and tostring(new_rank) or
-                                            new_rank == 10 and 'T' or
-                                            new_rank == 11 and 'J' or
-                                            new_rank == 12 and 'Q' or
-                                            new_rank == 13 and 'K' or 'A')])
-                                    new_card.T.x = playCard.T.x + (j*2-3)*G.CARD_W
-                                    table.insert(G.playing_cards, new_card)
-                                    G.deck.config.card_limit = G.deck.config.card_limit + 1
-                                    draw_card(G.play, G.deck, 90, 'up', nil, new_card)
-                                    new_card:start_materialize()
+                                local new_rank
+                                for _, k in ipairs(SMODS.Rank.obj_buffer) do
+                                    if SMODS.Ranks[k].nominal >= playCard.base.nominal/2 then
+                                        new_rank = k
+                                        break
+                                    end
                                 end
+                                
+                                playCard:juice_up()
+                                SMODS.change_base(playCard, playCard.base.suit, new_rank)
+                                
+                                G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                                local new_card = copy_card(playCard, nil, nil, G.playing_card)
+                                new_card.T.y = playCard.T.y - G.CARD_H
+                                table.insert(G.playing_cards, new_card)
+                                G.deck.config.card_limit = G.deck.config.card_limit + 1
+                                draw_card(G.play, G.deck, 90, 'up', nil, new_card)
+                                new_card:start_materialize()
                             end
                         end
                         return true
                     end
                 }))
-        
+             
                 card.ability.extra.state = "charging"
                 card.ability.extra.charge = 0
                 return {
@@ -1196,12 +1191,6 @@ SMODS.Joker{
                     sound = "fm_bladefury",
                     colour = G.C.GREEN
                 }
-            end
-        end
-            
-        if context.destroying_card then
-            if card.should_destroy then
-                return true
             end
         end
     end

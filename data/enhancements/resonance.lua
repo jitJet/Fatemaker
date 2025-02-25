@@ -89,7 +89,6 @@ SMODS.Enhancement {
     end
 }
 
--- scores twice, one with original card's chip worth, second time is the changed rank and suit with double its chip worth
 SMODS.Enhancement {
     key = "dissected",
     loc_txt = {
@@ -97,7 +96,9 @@ SMODS.Enhancement {
         text = {
             "RESONANCE",
             "When scored, randomizes rank and suit and",
-            "then gains {C:attention}double{} the chips"
+            "then gains {C:attention}double{} the chips",
+            "if the new rank is higher than the original",
+            "gain {X:mult,C:white}X1.5{} Mult"
         }
     },
     atlas = 'Enhancements',
@@ -107,36 +108,35 @@ SMODS.Enhancement {
     pos = {x=2, y=6},
     calculate = function(self, card, context)
         if context.cardarea == G.play and context.main_scoring then
+            local original_rank_id = card:get_id()
             
-            local suits = {'Hearts', 'Spades', 'Clubs', 'Diamonds'}
-            local new_suit = suits[math.random(1, 4)]
+            local random_suit_index = math.random(1, #SMODS.Suit.obj_buffer)
+            local new_suit = SMODS.Suit.obj_buffer[random_suit_index]
             
-            local new_rank = math.random(2, 14)
+            local random_rank_index = math.random(1, #SMODS.Rank.obj_buffer)
+            local new_rank = SMODS.Rank.obj_buffer[random_rank_index]
             
-            local new_code = (new_suit == 'Diamonds' and 'D_') or
-                        (new_suit == 'Spades' and 'S_') or
-                        (new_suit == 'Clubs' and 'C_') or
-                        (new_suit == 'Hearts' and 'H_')
+            local new_rank_id = SMODS.Ranks[new_rank].id
             
-            local new_val = (new_rank == 14 and 'A') or
-                        (new_rank == 13 and 'K') or
-                        (new_rank == 12 and 'Q') or
-                        (new_rank == 11 and 'J') or
-                        (new_rank == 10 and 'T') or
-                        tostring(new_rank)
-            
-            local new_card = G.P_CARDS[new_code..new_val]
             card:flip()
-            card:set_base(new_card)
+            SMODS.change_base(card, new_suit, new_rank)
             card_eval_status_text(card, 'extra', nil, nil, nil, {
                 message = "Reshaped!",
                 sound = "fm_dissected",
                 colour = G.C.BLACK
             })
             card:flip()
-            return{
-                chips = new_rank * 2
-            }
+            
+            if new_rank_id > original_rank_id then
+                return {
+                    chips = new_rank_id * 2,
+                    x_mult = 1.5
+                }
+            else
+                return {
+                    chips = new_rank_id * 2
+                }
+            end
         end
     end
 }
