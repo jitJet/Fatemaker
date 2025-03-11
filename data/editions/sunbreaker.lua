@@ -10,6 +10,7 @@ SMODS.Edition({
             "Nothing yet!"
         }
     },
+    sound = { sound = "fm_sunbreaker" },
     disable_shadow = false,
     disable_base_shader = false,
     discovered = true,

@@ -79,16 +79,43 @@ function Card:set_debuff(should_debuff)
         return alias_set_debuff(self, should_debuff)
 end
 
+local alias_disable = Blind.disable
+function Blind:disable(should_disable)
+    if G.GAME.blind.config.blind.key == "bl_fm_corrupted_wish" or
+    G.GAME.blind.config.blind.key == "bl_fm_machine_garden" or
+    G.GAME.blind.config.blind.key == "bl_fm_fallen_crypt" or
+    G.GAME.blind.config.blind.key == "bl_fm_darkest_vow" or
+    G.GAME.blind.config.blind.key == "bl_fm_harmonic_root" or
+    G.GAME.blind.config.blind.key == "bl_fm_reshaped_edge" then
+        self.disabled = false
+        return
+    end
+    return alias_disable(self, should_disable)
+end
+
 local alias_can_discard = G.FUNCS.can_discard
 G.FUNCS.can_discard = function(e)
    for _, card in ipairs(G.hand.highlighted) do
        if card.config.center == G.P_CENTERS.m_fm_unpowered_tether or
        card.config.center == G.P_CENTERS.m_fm_powered_tether_dark or
-       card.config.center == G.P_CENTERS.m_fm_powered_tether_light then
+       card.config.center == G.P_CENTERS.m_fm_powered_tether_light or
+       card.ability.fm_catatonic then
            e.config.colour = G.C.UI.BACKGROUND_INACTIVE
            e.config.button = nil
            return
        end
    end
    alias_can_discard(e)
+end
+
+local alias_can_play = G.FUNCS.can_play
+G.FUNCS.can_play = function(e)
+    for _, card in ipairs(G.hand.highlighted) do
+        if card.ability.fm_catatonic then
+            e.config.colour = G.C.UI.BACKGROUND_INACTIVE
+            e.config.button = nil
+            return
+        end
+    end
+    alias_can_play(e)
 end

@@ -6,7 +6,7 @@ SMODS.Enhancement {
         text = {
             "RESONANCE",
             "When scored, gain {X:mult,C:white}X0.5{}",
-            "Mult for each {C:attention}debuffed{}",
+            "Mult for each {C:attention}debuffed{} or {C:attention}Catatonic{}",
             "card in hand"
         }
     },
@@ -16,7 +16,7 @@ SMODS.Enhancement {
         if context.cardarea == G.play and context.main_scoring then
             local debuffed_count = 0
             for _, handCard in ipairs(G.hand.cards) do
-                if handCard.debuff then
+                if handCard.debuff or handCard.ability.fm_catatonic then
                     debuffed_count = debuffed_count + 1
                 end
             end
@@ -42,7 +42,7 @@ SMODS.Enhancement {
         name = "Finalized",
         text = {
             "RESONANCE",
-            "Has a {C:green}#1# in #2#{} chance to convert 5",
+            "Has a {C:green}#1# in #2#{} chance to convert 3",
             "random cards in hand to this",
             "card's suit when scored"
         }
@@ -67,7 +67,7 @@ SMODS.Enhancement {
                     end
                 end
      
-                for i = 1, math.min(5, #eligible_cards) do
+                for i = 1, math.min(3, #eligible_cards) do
                     local random_index = math.random(1, #eligible_cards)
                     local target_card = table.remove(eligible_cards, random_index)
                     target_card:flip()
@@ -97,8 +97,8 @@ SMODS.Enhancement {
             "RESONANCE",
             "When scored, randomizes rank and suit and",
             "then gains {C:attention}double{} the chips",
-            "if the new rank is higher than the original",
-            "gain {X:mult,C:white}X1.5{} Mult"
+            "If the new rank is higher",
+            "than the original, gain {X:mult,C:white}X1.5{} Mult"
         }
     },
     atlas = 'Enhancements',

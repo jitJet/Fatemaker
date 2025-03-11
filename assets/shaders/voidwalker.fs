@@ -98,35 +98,63 @@ vec4 HSL(vec4 c)
 	return hsl;
 }
 
+// vec4 effect(vec4 colour, Image texture, vec2 texture_coords, vec2 screen_coords)
+// {
+//     vec4 tex = Texel(texture, texture_coords);
+//     vec2 uv = (((texture_coords)*(image_details)) - texture_details.xy*texture_details.ba)/texture_details.ba;
+//     vec2 adjusted_uv = uv - vec2(0.5, 0.5);
+    
+//     float t = time * 1.2;
+    
+//     float spiral = length(adjusted_uv) - atan(adjusted_uv.y, adjusted_uv.x) * 0.5;
+//     float void_pattern = sin(spiral * 10.0 - t * 2.0) * 0.5 + 0.5;
+    
+//     float wave1 = sin(adjusted_uv.x * 8.0 + t + void_pattern);
+//     float wave2 = cos(adjusted_uv.y * 8.0 - t * 1.5);
+//     float waves = (wave1 + wave2) * 0.5;
+    
+//     float energy = pow(void_pattern + waves, 2.0) * voidwalker.x;
+//     vec3 void_color = vec3(0.4, 0.0, 0.7);
+//     vec3 energy_color = vec3(0.7, 0.1, 0.9);
+
+//     float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+//     if(lum > 0.95) {
+//         float blend = smoothstep(0.6, 0.9, lum);
+//         tex.rgb = mix(tex.rgb, mix(void_color, energy_color, energy), blend * 0.6);
+//     } else {
+//         float blend = smoothstep(0.3, 0.7, lum);
+//         tex.rgb = mix(tex.rgb, mix(void_color, energy_color, energy), blend * 0.6);
+//     }
+    
+//     return dissolve_mask(tex*colour, texture_coords, uv);
+// }
+
 vec4 effect(vec4 colour, Image texture, vec2 texture_coords, vec2 screen_coords)
 {
-    vec4 tex = Texel(texture, texture_coords);
-    vec2 uv = (((texture_coords)*(image_details)) - texture_details.xy*texture_details.ba)/texture_details.ba;
-    vec2 adjusted_uv = uv - vec2(0.5, 0.5);
-    
-    float t = time * 1.2;
-    
-    float spiral = length(adjusted_uv) - atan(adjusted_uv.y, adjusted_uv.x) * 0.5;
-    float void_pattern = sin(spiral * 10.0 - t * 2.0) * 0.5 + 0.5;
-    
-    float wave1 = sin(adjusted_uv.x * 8.0 + t + void_pattern);
-    float wave2 = cos(adjusted_uv.y * 8.0 - t * 1.5);
-    float waves = (wave1 + wave2) * 0.5;
-    
-    float energy = pow(void_pattern + waves, 2.0) * voidwalker.x;
-    vec3 void_color = vec3(0.4, 0.0, 0.7);
-    vec3 energy_color = vec3(0.7, 0.1, 0.9);
-
-    float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-    if(lum > 0.95) {
-        float blend = smoothstep(0.6, 0.9, lum);
-        tex.rgb = mix(tex.rgb, mix(void_color, energy_color, energy), blend * 0.6);
-    } else {
-        float blend = smoothstep(0.3, 0.7, lum);
-        tex.rgb = mix(tex.rgb, mix(void_color, energy_color, energy), blend * 0.6);
-    }
-    
-    return dissolve_mask(tex*colour, texture_coords, uv);
+   vec4 tex = Texel(texture, texture_coords);
+   vec2 uv = (((texture_coords)*(image_details)) - texture_details.xy*texture_details.ba)/texture_details.ba;
+   
+   float t = time * 1.2;
+   vec2 rotater = vec2(cos(t*0.1221), sin(t*0.3512));
+   float angle = dot(rotater, uv)/(length(rotater)*length(uv));
+   
+   float wave1 = sin(angle*3.14*(2.2 + 0.9*sin(t*1.65)));
+   float wave2 = sin(10.0*length(uv) + t);
+   float wave3 = cos(20.0*uv.x + 15.0*uv.y + t*0.5);
+   
+   float pattern = (wave1 + wave2 + wave3) * (0.5 + 0.3*voidwalker.x);
+   
+   vec2 distorted_uv = uv + 0.02*vec2(wave1, wave2);
+   vec4 shifted_tex = Texel(texture, texture_coords + distorted_uv*0.1);
+   
+   vec3 highlight = vec3(1.2, 0.9, 1.1);
+   vec3 shadow = vec3(0.4, 0.0, 0.7);
+   vec3 effect = mix(shadow, highlight, pattern);
+   
+   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+   tex.rgb = mix(tex.rgb, tex.rgb * effect, 0.6 + 0.01*lum);
+   
+   return dissolve_mask(tex*colour, texture_coords, uv);
 }
 
 extern MY_HIGHP_OR_MEDIUMP vec2 mouse_screen_pos;

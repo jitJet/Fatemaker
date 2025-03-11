@@ -10,6 +10,7 @@ SMODS.Edition({
             "Nothing yet!"
         }
     },
+    sound = { sound = "fm_arcstrider" },
     disable_shadow = true,
     disable_base_shader = true,
     discovered = true,

@@ -75,3 +75,7 @@ SMODS.Sound({
         return (G.GAME and G.GAME.blind and G.GAME.blind.config.blind.key == "bl_fm_machine_garden")
     end,
 })
+
+SMODS.Sound({ vol = 0.6, key = "meditation_sweep", path = "meditation_sweep.ogg" })
+SMODS.Sound({ vol = 0.6, key = "meditation_explosion", path = "meditation_explosion.ogg" })
+SMODS.Sound({ vol = 0.6, key = "voidwalker", path = "voidwalker.ogg" })

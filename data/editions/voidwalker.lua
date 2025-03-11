@@ -10,6 +10,7 @@ SMODS.Edition({
             "Nothing yet!"
         }
     },
+    sound = { sound = "fm_voidwalker" },
     disable_shadow = false,
     disable_base_shader = false,
     on_apply = function(card)

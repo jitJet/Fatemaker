@@ -61,3 +61,23 @@ if self.children.particles and self.children.particles.behind then
     if self.children.particles then self.children.particles:draw() end
 end
 '''
+
+[[patches]]
+[patches.pattern]
+target = 'functions/state_events.lua'
+match_indent = true
+position = 'before'
+pattern = '''
+local pures = {}
+'''
+payload = '''
+local alias_evaluate_play = G.FUNCS.evaluate_play
+for _, card in ipairs(G.jokers.cards) do
+    if card.ability.name == "j_fm_transcendence" and 
+    card.ability.extra.state == "active" then
+        card.ability.extra.state = "charging"
+        card.ability.extra.charge = 0
+        alias_evaluate_play(e)
+    end
+end
+'''

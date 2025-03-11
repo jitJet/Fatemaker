@@ -4,8 +4,8 @@ SMODS.Joker{
         name = "Facet of Balance",
         text = {
             "If the total Chip or Mult amount",
-            "is lower than the other, {C:attention}sacrifice",
-            "half of the higher amount{} to be added",
+            "is lower than the other, {C:attention}sacrifice a",
+            "quarter of the higher amount{} to be added",
             "to the lower amount"
         }
     },
@@ -21,22 +21,22 @@ SMODS.Joker{
     calculate = function(self, card, context)
         if context.joker_main then
             if hand_chips > mult then
-                local halved_chips = hand_chips / 2
-                hand_chips = hand_chips - halved_chips
-                mult = mult + halved_chips
+                local quartered_chips = hand_chips / 4
+                hand_chips = hand_chips - quartered_chips
+                mult = mult + quartered_chips
                 update_hand_text({delay = 0}, {chips = hand_chips, mult = mult})
                 return {
-                    message = "+" .. halved_chips .. " Mult",
+                    message = "+" .. quartered_chips .. " Mult",
                     colour = G.C.MULT,
                     card = card
                 }
             elseif hand_chips < mult then
-                local halved_mult = mult / 2
-                mult = mult - halved_mult
-                hand_chips = hand_chips + halved_mult
+                local quartered_mult = mult / 4
+                mult = mult - quartered_mult
+                hand_chips = hand_chips + quartered_mult
                 update_hand_text({delay = 0}, {chips = hand_chips, mult = mult})
                 return {
-                    message = "+" .. halved_mult,
+                    message = "+" .. quartered_mult,
                     colour = G.C.CHIPS,
                     card = card
                 }
@@ -392,7 +392,7 @@ SMODS.Joker{
                                 end
                             }))
                         end
-                    end              
+                    end
                 
                     -- Reset charge first
                     card.ability.extra.state = "charging"
@@ -1069,7 +1069,12 @@ SMODS.Joker{
     loc_txt = {
         name = "Needlestorm",
         text = {
-            "",
+            "Charge with 5 {C:green}Strand{} cards.",
+            "When charged, grants {C:green}Unravel{}",
+            "to 5 random cards in hand.",
+            "Each card starts with Threads",
+            "equal to its rank.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -1081,9 +1086,84 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=8, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging"
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        else
+            return { vars = { "Ready!" } }
+        end
+    end,
     calculate = function(self, card, context)
         if context.joker_main then
-            
+            local strand_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_tangle or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_wovenmail or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_unravel then
+                    strand_count = strand_count + 1
+                end
+            end
+    
+            if strand_count > 0 and card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + strand_count)
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.GREEN
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.GREEN
+                    }
+                end
+            end
+        end
+    
+        if context.after and card.ability.extra.state == "ready" then
+            local normal_cards = {}
+            for _, handCard in ipairs(G.hand.cards) do
+                if handCard.ability.set ~= "Enhanced" then
+                    table.insert(normal_cards, handCard)
+                end
+            end
+    
+            for i = 1, math.min(5, #normal_cards) do
+                local card_idx = math.random(#normal_cards)
+                local target_card = normal_cards[card_idx]
+                local thread_count = target_card:get_id()
+    
+                SMODS.calculate_effect({
+                    message = thread_count .. " Threads!",
+                    sound = "fm_needlestorm",
+                    colour = G.C.GREEN
+                }, target_card)
+    
+                G.E_MANAGER:add_event(Event({
+                    func = function()
+                        target_card:flip()
+                        target_card:set_ability(G.P_CENTERS.m_fm_unravel)
+                        target_card.ability.extra.threads = thread_count
+                        target_card:flip()
+                        return true
+                    end
+                }))
+                
+                table.remove(normal_cards, card_idx)
+            end
+    
+            card.ability.extra.state = "charging"
+            card.ability.extra.charge = 0
         end
     end
 }
@@ -1196,26 +1276,179 @@ SMODS.Joker{
     end
 }
 
+SMODS.Sticker {
+    key = "catatonic",
+    loc_txt = {
+        name = "Catatonic",
+        text = {
+            "Cannot be played or discarded",
+            "For each hand played, this card",
+            "gains {C:mult}+10{} Mult",
+            "Disappears after the round ends",
+            "{C:inactive}(Currently: {C:mult}+#1#{C:inactive} Mult)"
+        }
+    },
+    default_compat = true,
+    sets = {
+        Joker = false
+    },
+    atlas = "Stickers",
+    pos = {x = 2, y = 0},
+    config = {
+        extra = {
+            accumulated_mult = 10
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.catatonic_mult or self.config.extra.accumulated_mult } }
+    end,
+    calculate = function(self, card, context)
+        if not card.catatonic_mult then
+            card.catatonic_mult = self.config.extra.accumulated_mult
+        end
+        
+        if card.area == G.hand and context.after then
+            card.catatonic_mult = card.catatonic_mult + 10
+            return {
+                message = "Mult Up!",
+                colour = G.C.MULT
+            }
+        end
+        
+        if card.area == G.hand and context.main_scoring then
+            return {
+                mult = card.catatonic_mult
+            }
+        end
+        
+        if context.end_of_round then
+            card:flip()
+            SMODS.Stickers.fm_catatonic:apply(card, false)
+            card:flip()
+            card.catatonic_mult = nil
+        end
+    end
+}
+
 SMODS.Joker{
     key = "witnesss_shatter",
     loc_txt = {
         name = "Witness's Shatter",
         text = {
-            "",
+            "Charge with 5 {C:black}Resonance{} cards.",
+            "When charged, {C:attention}#1#{} random cards",
+            "become {C:black}Catatonic{}, making them {C:mult}unplayable{}",
+            "and {C:mult}undiscardable{}, but gaining",
+            "{C:mult}+10{} Mult per hand played",
+            "until the round ends.",
+            "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
         }
     },
     atlas = 'Jokers',
     rarity = 2,
     cost = 4,
-    blueprint_compat = false,
+    blueprint_compat = true,
     eternal_compat = true,
     perishable_compat = true,
     unlocked = true,
     discovered = true,
     pos = {x=10, y=1},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging",
+            catatonic_count = 3
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { 
+                card.ability.extra.catatonic_count, 
+                card.ability.extra.charge .. "/5 Charging" 
+            }}
+        else
+            return { vars = { 
+                card.ability.extra.catatonic_count, 
+                "Ready!" 
+            }}
+        end
+    end,
     calculate = function(self, card, context)
+        if context.end_of_round then
+            card.ability.extra.catatonic_count = math.random(1, 3)
+        end
+        
         if context.joker_main then
+            local resonance_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_resonant or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_dissected or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_finalized then
+                    resonance_count = resonance_count + 1
+                end
+            end
+
+            if resonance_count > 0 and card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + resonance_count)
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.BLACK
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.BLACK
+                    }
+                end
+            end
+        end
+        
+        if context.after and card.ability.extra.state == "ready" then
+            local available_cards = {}
+            for _, handCard in ipairs(G.hand.cards) do
+
+                if handCard.ability.set ~= "Enhanced" then
+                    table.insert(available_cards, handCard)
+                end
+            end
             
+            -- Calculate how many cards to become catatonic (min of available cards or config value)
+            local cards_to_catatonic = math.min(#available_cards, card.ability.extra.catatonic_count)
+            
+            for i = 1, cards_to_catatonic do
+                if #available_cards > 0 then
+                    -- Select random card
+                    local card_idx = math.random(#available_cards)
+                    local target_card = available_cards[card_idx]
+                    
+                    -- Apply catatonic effect with visual feedback
+                    SMODS.calculate_effect({
+                        message = "Decimated!",
+                        sound = "fm_witnesss_shatter",
+                        colour = G.C.BLACK
+                    }, target_card)
+                    
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            target_card:juice_up()
+                            SMODS.Stickers.fm_catatonic:apply(target_card, true)
+                            return true
+                        end
+                    }))
+                    
+                    -- Remove from available cards
+                    table.remove(available_cards, card_idx)
+                end
+            end
+            
+            -- Reset charge state
+            card.ability.extra.state = "charging"
+            card.ability.extra.charge = 0
         end
     end
 }
@@ -1225,7 +1458,12 @@ SMODS.Joker{
     loc_txt = {
         name = "Resonate Whirlwind",
         text = {
-            "",
+            "Charge with 5 Resonance cards.",
+            "When charged, all cards except those of",
+            "suit {C:attention}#1#{} are subjected to random",
+            "rank changes. Surviving cards gain",
+            "{C:black}Resonance{} enhancements.",
+            "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -1237,9 +1475,163 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=0, y=2},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging",
+            protected_suit = "Hearts"
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { 
+                card.ability.extra.protected_suit or "None",
+                card.ability.extra.charge .. "/5 Charging" 
+            }}
+        else
+            return { vars = { 
+                card.ability.extra.protected_suit or "None",
+                "Ready!" 
+            }}
+        end
+    end,
     calculate = function(self, card, context)
+        if context.end_of_round then
+            local suit_key = pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('whirlwind_suit'))
+            card.ability.extra.protected_suit = suit_key
+        end
+        
         if context.joker_main then
+            local resonance_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_resonant or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_dissected or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_finalized then
+                    resonance_count = resonance_count + 1
+                end
+            end
+
+            if resonance_count > 0 and card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + resonance_count)
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.BLACK
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.BLACK
+                    }
+                end
+            end
+        end
+
+        if context.after and card.ability.extra.state == "ready" then
+            local protected_cards = {}
+            local unprotected_cards = {}
+
+            for _, handCard in ipairs(G.hand.cards) do
+                if handCard.base.suit == card.ability.extra.protected_suit then
+                    table.insert(protected_cards, handCard)
+                else
+                    table.insert(unprotected_cards, handCard)
+                end
+            end
+
+            for _, protectedCard in ipairs(protected_cards) do
+                local enhancements = {
+                    G.P_CENTERS.m_fm_resonant,
+                    G.P_CENTERS.m_fm_dissected,
+                    G.P_CENTERS.m_fm_finalized
+                }
+                
+                local enhancement = enhancements[math.random(#enhancements)]
+                
+                G.E_MANAGER:add_event(Event({
+                    trigger = "before",
+                    func = function()
+                        protectedCard:flip()
+                        protectedCard:juice_up()
+                        protectedCard:set_ability(enhancement)
+                        G.hand:add_to_highlighted(protectedCard)
+                        G.E_MANAGER:add_event(Event({
+                            trigger = "before",
+                            func = function()
+                                protectedCard:flip()
+                                G.hand:remove_from_highlighted(protectedCard)
+                                return true
+                            end
+                        }))
+                        return true
+                    end
+                }))
+            end
             
+            for _, unprotectedCard in ipairs(unprotected_cards) do
+                local rank_change = math.random(-3, 3)
+                if rank_change == 0 then rank_change = 1 end
+                
+                G.E_MANAGER:add_event(Event({
+                    trigger = "before",
+                    func = function()
+                        local current_rank = unprotectedCard.base.value
+                        local current_idx = nil
+                        
+                        for idx, rank_key in ipairs(SMODS.Rank.obj_buffer) do
+                            if rank_key == current_rank then
+                                current_idx = idx
+                                break
+                            end
+                        end
+                        
+                        if current_idx then
+                            -- Calculate new rank index (bounded by buffer size)
+                            local new_idx = math.max(1, math.min(#SMODS.Rank.obj_buffer, current_idx + rank_change))
+                            local new_rank = SMODS.Rank.obj_buffer[new_idx]
+                            
+                            -- Apply rank change
+                            unprotectedCard:flip()
+                            unprotectedCard:juice_up()
+                            SMODS.change_base(unprotectedCard, unprotectedCard.base.suit, new_rank)
+                            G.hand:add_to_highlighted(unprotectedCard)
+                            
+                            -- Show message indicating rank change
+                            local message = rank_change > 0 and "+" .. rank_change .. " Rank!" or rank_change .. " Rank!"
+                            local color = rank_change > 0 and G.C.BLACK or G.C.RED
+                            
+                            SMODS.calculate_effect({
+                                message = message,
+                                colour = color
+                            }, unprotectedCard)
+
+                            G.E_MANAGER:add_event(Event({
+                                trigger = "before",
+                                func = function()
+                                    unprotectedCard:flip()
+                                    G.hand:remove_from_highlighted(unprotectedCard)
+                                    return true
+                                end
+                            }))
+                        end
+                        return true
+                    end
+                }))
+            end
+            
+            -- Reset after use
+            card.ability.extra.state = "charging"
+            card.ability.extra.charge = 0
+            
+            return {
+                message = "Whirlwind!",
+                sound = "fm_resonate_whirlwind",
+                colour = G.C.BLACK
+            }
         end
     end
 }
@@ -1249,7 +1641,12 @@ SMODS.Joker{
     loc_txt = {
         name = "Transcendence",
         text = {
-            "",
+            "Charge with 5 {X:dark_edition,C:white}Prismatic{} cards.",
+            "When charged, the next scoring hand will",
+            "convert all {C:attention}Light{} cards to {C:darkgray}Dark{} cards and",
+            "all {C:darkgray}Dark{} cards to {C:attention}Light{} cards,",
+            "then score again with the converted cards.",
+            "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -1261,9 +1658,140 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=1, y=2},
+    config = {
+        extra = {
+            charge = 0,
+            state = "charging"
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        if card.ability.extra.state == "charging" then
+            return { vars = { card.ability.extra.charge .. "/5 Charging" } }
+        else
+            return { vars = { "Ready!" } }
+        end
+    end,
     calculate = function(self, card, context)
+        -- Charge with Prismatic cards
         if context.joker_main then
-            
+            -- Count Prismatic cards
+            local prismatic_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_transcendent then
+                    prismatic_count = prismatic_count + 1
+                end
+            end
+     
+            if prismatic_count > 0 and card.ability.extra.state == "charging" then
+                card.ability.extra.charge = math.min(5, card.ability.extra.charge + prismatic_count)
+                if card.ability.extra.charge >= 5 then
+                    card.ability.extra.state = "ready"
+                    local eval = function() return card.ability.extra.state == "ready" end
+                    juice_card_until(card, eval, true)
+                    return {
+                        message = "Ready!",
+                        sound = "fm_super_ready",
+                        colour = G.C.WHITE
+                    }
+                else
+                    return {
+                        message = "Charging...",
+                        colour = G.C.WHITE
+                    }
+                end
+            end
+
+            -- Main effect when charged
+            if card.ability.extra.state == "ready" then
+                -- Define Light and Dark enhancement centers
+                local light_centers = {
+                    G.P_CENTERS.m_fm_scorch,
+                    G.P_CENTERS.m_fm_radiant,
+                    G.P_CENTERS.m_fm_restoration,
+                    G.P_CENTERS.m_fm_amplified,
+                    G.P_CENTERS.m_fm_jolt,
+                    G.P_CENTERS.m_fm_blinded,
+                    G.P_CENTERS.m_fm_devour,
+                    G.P_CENTERS.m_fm_volatile,
+                    G.P_CENTERS.m_fm_overshield
+                }
+                
+                local dark_centers = {
+                    G.P_CENTERS.m_fm_stasis_crystal,
+                    G.P_CENTERS.m_fm_slow,
+                    G.P_CENTERS.m_fm_freeze,
+                    G.P_CENTERS.m_fm_shatter,
+                    G.P_CENTERS.m_fm_tangle,
+                    G.P_CENTERS.m_fm_wovenmail,
+                    G.P_CENTERS.m_fm_unravel,
+                    G.P_CENTERS.m_fm_resonant,
+                    G.P_CENTERS.m_fm_dissected,
+                    G.P_CENTERS.m_fm_finalized
+                }
+                
+                -- Helper function to check if a center is in a list
+                local function center_in_list(center, list)
+                    for _, c in ipairs(list) do
+                        if center == c then
+                            return true
+                        end
+                    end
+                    return false
+                end
+                
+                -- Convert cards in the scoring hand
+                for _, scoringCard in ipairs(context.scoring_hand) do
+                    -- Skip prismatic cards
+                    if scoringCard.config.center ~= G.P_CENTERS.m_fm_transcendent then
+                        local new_center
+                        
+                        -- Convert Light to Dark
+                        if center_in_list(scoringCard.config.center, light_centers) then
+                            new_center = dark_centers[math.random(#dark_centers)]
+                            
+                            G.E_MANAGER:add_event(Event({
+                                trigger = "immediate",
+                                func = function()
+                                    scoringCard:flip()
+                                    scoringCard:juice_up()
+                                    scoringCard:set_ability(new_center)
+                                    SMODS.calculate_effect({
+                                        message = "Darkened!",
+                                        sound = "fm_transcendence",
+                                        colour = G.C.BLACK
+                                    }, scoringCard)
+                                    scoringCard:flip()
+                                    return true
+                                end
+                            }))
+                            
+                        -- Convert Dark to Light
+                        elseif center_in_list(scoringCard.config.center, dark_centers) then
+                            new_center = light_centers[math.random(#light_centers)]
+                            
+                            G.E_MANAGER:add_event(Event({
+                                trigger = "immediate",
+                                func = function()
+                                    scoringCard:flip()
+                                    scoringCard:juice_up()
+                                    scoringCard:set_ability(new_center)
+                                    SMODS.calculate_effect({
+                                        message = "Illuminated!",
+                                        sound = "fm_transcendence",
+                                        colour = G.C.WHITE
+                                    }, scoringCard)
+                                    scoringCard:flip()
+                                    return true
+                                end
+                            }))
+                        end
+                    end
+                end
+                
+                -- Reset the joker state
+                card.ability.extra.state = "charging"
+                card.ability.extra.charge = 0
+            end
         end
     end
 }
@@ -1273,24 +1801,226 @@ SMODS.Joker{
     loc_txt = {
         name = "Meditation",
         text = {
-            "Play 7 cards of the same subclass",
-            "in a row to grant a Subclass Edition to a",
-            "card in hand"
+            "Score {C:attention}7{} elemental cards of the same subclass",
+            "{C:attention}in a row{} to grant a Subclass Edition to a",
+            "random card in hand",
+            "{C:inactive}({C:attention}#1#{C:inactive}, {C:attention}#2#{C:inactive}/7 cards)",
+            "{C:mult}Self-destructs{} after granting a Subclass Edition"
         }
     },
     atlas = 'Jokers',
-    rarity = 2,
-    cost = 4,
+    rarity = 4,
+    cost = 10,
     blueprint_compat = false,
     eternal_compat = false,
     perishable_compat = true,
     unlocked = true,
     discovered = true,
     pos = {x=2, y=2},
-    soul_pos = {x=3, y=2},
+    soul_pos = {x=10, y=2},
+    config = {
+        extra = {
+            current_subclass = "None",
+            count = 0,
+            last_played_card_id = nil
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { 
+            card.ability.extra.current_subclass == "None" and "None" or card.ability.extra.current_subclass,
+            card.ability.extra.count
+        }}
+    end,
     calculate = function(self, card, context)
         if context.joker_main then
+            local subclass_centers = {
+                ["Void"] = {
+                    G.P_CENTERS.m_fm_overshield,
+                    G.P_CENTERS.m_fm_devour,
+                    G.P_CENTERS.m_fm_volatile
+                },
+                ["Solar"] = {
+                    G.P_CENTERS.m_fm_radiant,
+                    G.P_CENTERS.m_fm_restoration,
+                    G.P_CENTERS.m_fm_scorch
+                },
+                ["Arc"] = {
+                    G.P_CENTERS.m_fm_jolt,
+                    G.P_CENTERS.m_fm_amplified,
+                    G.P_CENTERS.m_fm_blinded
+                },
+                ["Stasis"] = {
+                    G.P_CENTERS.m_fm_slow,
+                    G.P_CENTERS.m_fm_freeze,
+                    G.P_CENTERS.m_fm_stasis_crystal,
+                    G.P_CENTERS.m_fm_shatter
+                },
+                ["Strand"] = {
+                    G.P_CENTERS.m_fm_tangle,
+                    G.P_CENTERS.m_fm_wovenmail,
+                    G.P_CENTERS.m_fm_unravel
+                },
+                ["Resonance"] = {
+                    G.P_CENTERS.m_fm_resonant,
+                    G.P_CENTERS.m_fm_dissected,
+                    G.P_CENTERS.m_fm_finalized
+                },
+                ["Prismatic"] = {
+                    G.P_CENTERS.m_fm_transcendent
+                }
+            }
             
+            -- Define subclass to soul_pos mapping
+            local subclass_to_soul_pos = {
+                ["Void"] = {x = 3, y = 2},
+                ["Solar"] = {x = 4, y = 2},
+                ["Arc"] = {x = 5, y = 2},
+                ["Stasis"] = {x = 6, y = 2},
+                ["Strand"] = {x = 7, y = 2},
+                ["Resonance"] = {x = 8, y = 2},
+                ["Prismatic"] = {x = 9, y = 2},
+                ["None"] = {x = 10, y = 2}
+            }
+            
+            -- Define subclass to Edition center mapping
+            local subclass_to_edition = {
+                ["Void"] = 'e_fm_voidwalker',
+                ["Solar"] = 'e_fm_sunbreaker',
+                ["Arc"] = 'e_fm_arcstrider',
+                ["Stasis"] = 'e_fm_behemoth',
+                ["Strand"] = 'e_fm_threadrunner',
+                ["Resonance"] = 'e_fm_architect',
+                ["Prismatic"] = 'e_fm_legend'
+            }
+            
+            -- Detect played subclass in this hand
+            local detected_subclass = "None"
+            local scored_cards = context.scoring_hand or {}
+            
+            for _, scoringCard in ipairs(scored_cards) do
+                for subclass, centers in pairs(subclass_centers) do
+                    for _, center in ipairs(centers) do
+                        if scoringCard.config.center == center then
+                            detected_subclass = subclass
+                            break
+                        end
+                    end
+                    if detected_subclass ~= "None" then break end
+                end
+                if detected_subclass ~= "None" then break end
+            end
+            
+            -- If no subclass detected in this hand, skip processing
+            if detected_subclass == "None" then 
+                return 
+            end
+            
+            -- Check if we're continuing a streak or starting a new one
+            if card.ability.extra.current_subclass == detected_subclass then
+                -- Continue the streak
+                card.ability.extra.count = card.ability.extra.count + 1
+            else
+                -- Start a new streak
+                card.ability.extra.current_subclass = detected_subclass
+                card.ability.extra.count = 1
+                
+                -- Update soul_pos to match the new subclass
+                card:flip()
+                card:juice_up()
+                card.children.floating_sprite:set_sprite_pos(subclass_to_soul_pos[detected_subclass])
+                card:flip()
+            end
+            
+            -- If reached 7 cards, grant edition
+            if card.ability.extra.count >= 7 then
+                -- Find eligible cards in hand
+                local eligible_cards = {}
+                for _, handCard in ipairs(G.hand.cards) do
+                    if handCard.ability.set ~= "Enhanced" and handCard.ability.set ~= "Edition" then
+                        table.insert(eligible_cards, handCard)
+                    end
+                end
+                
+                -- Apply edition if we have eligible cards
+                if #eligible_cards > 0 then
+                    local target_card = eligible_cards[math.random(#eligible_cards)]
+                    local edition_center = subclass_to_edition[card.ability.extra.current_subclass]
+                    
+                    -- Play effects
+                    local subclass_colors = {
+                        ["Void"] = G.C.PURPLE,
+                        ["Solar"] = G.C.ORANGE,
+                        ["Arc"] = G.C.BLUE,
+                        ["Stasis"] = G.C.SUITS.Spades,
+                        ["Strand"] = G.C.GREEN,
+                        ["Resonance"] = G.C.BLACK,
+                        ["Prismatic"] = G.C.DARK_EDITION
+                    }
+                    
+                    local color = subclass_colors[card.ability.extra.current_subclass] or G.C.WHITE
+                    local message = card.ability.extra.current_subclass .. " Enlightenment!"
+                    
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            play_sound("fm_meditation_sweep")
+                            local count = 0
+                            local shake_event
+                            shake_event = Event({
+                                func = function()
+                                    if count <= 30 then
+                                        card:juice_up(1, 1)
+                                        count = count + 1
+                                        G.E_MANAGER:add_event(shake_event)
+                                    else
+
+                                        play_sound("fm_meditation_explosion")
+                                        card:start_dissolve({G.C.DARK_EDITION})
+                                        
+                                        G.E_MANAGER:add_event(Event({
+                                            trigger = "after",
+                                            delay = 3.0,
+                                            func = function()
+                                                local target_count = 0
+                                                local target_shake_event
+                                                target_shake_event = Event({
+                                                    trigger = "after",
+                                                    delay = 0.05,
+                                                    func = function()
+                                                        if target_count <= 15 then
+                                                            target_card:juice_up(1, 1)
+                                                            target_count = target_count + 1
+                                                            G.E_MANAGER:add_event(target_shake_event)
+                                                        else
+                                                            target_card:juice_up(8, 8)
+                                                            G.hand:add_to_highlighted(card)
+                                                            target_card:set_edition(edition_center, true)
+                                                            G.hand:remove_from_highlighted(card)
+                                                            return true
+                                                        end
+                                                        return true
+                                                    end
+                                                })
+                                                G.E_MANAGER:add_event(target_shake_event)
+                                                return true
+                                            end
+                                        }))
+                                        return true
+                                    end
+                                    return true
+                                end
+                            })
+                            G.E_MANAGER:add_event(shake_event)
+                            return true
+                        end
+                    }))
+                end
+            else
+                -- Update progress message
+                return {
+                    message = card.ability.extra.count .. "/7 " .. card.ability.extra.current_subclass,
+                    colour = G.C.WHITE
+                }
+            end
         end
     end
 }
