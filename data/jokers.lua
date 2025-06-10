@@ -565,7 +565,8 @@ SMODS.Joker{
     config = {
         extra = {
             charge = 0,
-            state = "charging"
+            state = "charging",
+            starvation_applied = false
         }
      },
      loc_vars = function(self, info_queue, card)
@@ -747,7 +748,8 @@ SMODS.Joker{
         extra = {
             charge = 0,
             state = "charging",
-            hands_remaining = 3
+            hands_remaining = 3,
+            starvation_applied = false
         }
     },
     loc_vars = function(self, info_queue, card)
@@ -2020,6 +2022,161 @@ SMODS.Joker{
                     message = card.ability.extra.count .. "/7 " .. card.ability.extra.current_subclass,
                     colour = G.C.WHITE
                 }
+            end
+        end
+    end
+}
+
+-- FRAGMENT JOKERS
+
+SMODS.Joker{
+    key = "echo_of_reprisal",
+    loc_txt = {
+        name = "Echo of Reprisal",
+        text = {
+            "Grants extra {C:attention}charges{} to",
+            "{C:purple}Void Super{} cards",
+            "for every card scored with the {C:attention}same suit{}",
+            "with a scoring {C:purple}Void{} card"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=8, y=1},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local void_suits = {}
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_devour or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                    void_suits[scoringCard.base.suit] = true
+                end
+            end
+
+            local extra_charges = 0
+            for suit, _ in pairs(void_suits) do
+                for _, scoreCard in ipairs(context.scoring_hand) do
+                    if scoreCard.base.suit == suit then
+                        extra_charges = extra_charges + 1
+                    end
+                end
+            end
+
+            for _, joker in ipairs(G.jokers.cards) do
+                if joker.config.center_key == "j_fm_ward_of_dawn" or joker.config.center_key == "j_fm_shadowshot" then
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            joker.ability.extra.charge = joker.ability.extra.charge + extra_charges
+                            SMODS.calculate_effect({
+                                message = "+" .. extra_charges .. " Charge",
+                                colour = G.C.PURPLE,
+                                sound = "fm_super_ready"
+                            }, joker)
+                            return true
+                        end
+                    }))
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "echo_of_starvation",
+    loc_txt = {
+        name = "Echo of Starvation",
+        text = {
+            "Whenever a {C:purple}Void Super{} Joker is fully charged,",
+            "grant {C:purple}Devour{} to a random unenhanced card in hand."
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=9, y=1},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            for _, joker in ipairs(G.jokers.cards) do
+                -- Find a way to automatically grant devour like how Gathering Storm automatically grants Amplified
+                -- And also find a way to make it grant Devour after Shadowshot's activation
+                if joker.config.center_key == "j_fm_ward_of_dawn" or joker.config.center_key == "j_fm_shadowshot" then
+                    if joker.ability.extra.state == "ready" and not joker.ability.extra.starvation_applied then
+                        joker.ability.extra.starvation_applied = true
+
+                        local unenhanced = {}
+                        for _, handCard in ipairs(G.hand.cards) do
+                            if handCard.ability.set ~= "Enhanced" then
+                                table.insert(unenhanced, handCard)
+                            end
+                        end
+
+                        if #unenhanced > 0 then
+                            local target = unenhanced[math.random(#unenhanced)]
+                            SMODS.calculate_effect({
+                                message = "Devoured!",
+                                sound = "fm_devour",
+                                colour = G.C.PURPLE
+                            }, target)
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    target:flip()
+                                    target:set_ability(G.P_CENTERS.m_fm_devour)
+                                    target:flip()
+                                    return true
+                                end
+                            }))
+                        end
+                    elseif joker.ability.extra.state ~= "ready" then
+                        joker.ability.extra.starvation_applied = false
+                    end
+                end
+            end
+        end
+
+        if context.after then
+            for _, joker in ipairs(G.jokers.cards) do
+                if (joker.config.center_key == "j_fm_ward_of_dawn" or joker.config.center_key == "j_fm_shadowshot")
+                    and joker.ability.extra.state == "ready"
+                    and not joker.ability.extra.starvation_applied then
+
+                    joker.ability.extra.starvation_applied = true
+
+                    local unenhanced = {}
+                    for _, handCard in ipairs(G.hand.cards) do
+                        if handCard.ability.set ~= "Enhanced" then
+                            table.insert(unenhanced, handCard)
+                        end
+                    end
+
+                    if #unenhanced > 0 then
+                        local target = unenhanced[math.random(#unenhanced)]
+                        SMODS.calculate_effect({
+                            message = "Devoured!",
+                            sound = "fm_devour",
+                            colour = G.C.PURPLE
+                        }, target)
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                target:flip()
+                                target:set_ability(G.P_CENTERS.m_fm_devour)
+                                target:flip()
+                                return true
+                            end
+                        }))
+                    end
+                end
             end
         end
     end
