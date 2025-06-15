@@ -140,3 +140,22 @@ SMODS.Enhancement {
         end
     end
 }
+
+SMODS.Enhancement {
+    key = "rooted",
+    loc_txt = {
+        name = "Rooted",
+        text = {
+            "RESONANCE",
+            "Incrementally grants {C:blue}+20{} Chips",
+            "but decreases in rank by 1 every time it is",
+            "played",
+            "{C:inactive}(Currently {C:chips}+#1#{C:inactive} Chips)"
+        }
+    },
+    atlas = 'Enhancements',
+    pos = {x=4, y=7},
+    calculate = function(self, card, context)
+        
+    end
+}

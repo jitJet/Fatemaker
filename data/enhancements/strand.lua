@@ -65,10 +65,45 @@ SMODS.Enhancement {
         text = {
             "{C:green}STRAND{}",
             "Immune to {C:attention}debuffs{}",
+            "Adjacent cards with a lower rank than this",
+            "score {C:blue}+75{} chips"
         }
     },
     atlas = 'Enhancements',
-    pos = {x=1, y=0}
+    pos = {x=1, y=0},
+    calculate = function(self, card, context)
+        if context.cardarea == G.play and context.main_scoring then
+            -- Find this card's position in the scoring hand
+            local bonus = 0
+            for i, playedCard in ipairs(context.scoring_hand) do
+                if playedCard == card then
+                    local my_rank = card:get_id()
+                    -- Check left
+                    if i > 1 then
+                        local left = context.scoring_hand[i-1]
+                        if left:get_id() < my_rank then
+                            bonus = bonus + 75
+                        end
+                    end
+                    -- Check right
+                    if i < #context.scoring_hand then
+                        local right = context.scoring_hand[i+1]
+                        if right:get_id() < my_rank then
+                            bonus = bonus + 75
+                        end
+                    end
+                end
+                if bonus > 0 then
+                    return { 
+                        message = 'Woven!',
+                        sound = 'fm_wovenmail',
+                        colour = G.C.GREEN,
+                        chips = bonus
+                    }
+                end
+            end
+        end
+    end
 }
 
 -- works
@@ -78,7 +113,7 @@ SMODS.Enhancement {
         name = "Unravel",
         text = {
             "{C:green}STRAND{}",
-            "Each hand played stores {C:attention}1{} Thread.",
+            "Each hand played stores {C:attention}#4#{} Thread(s)",
             "Has a {C:green}#2# in #3#{} chance of breaking",
             "Once broken, 3 unplayed cards with the lowest ranks",
             "will increase in rank by number of",
@@ -93,15 +128,16 @@ SMODS.Enhancement {
         extra = {
             threads = 0,
             rank_boost = 0,
-            denom = 4
+            denom = 4,
+            threads_per_hand = 1
         }
     },
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.threads, G.GAME.probabilities.normal, card.ability.extra.denom } }
+        return { vars = { card.ability.extra.threads, G.GAME.probabilities.normal, card.ability.extra.denom, card.ability.extra.threads_per_hand or 1 } }
     end,
     calculate = function(self, card, context)
         if context.cardarea == G.play and context.main_scoring then
-            card.ability.extra.threads = card.ability.extra.threads + 1
+            card.ability.extra.threads = card.ability.extra.threads + (card.ability.extra.threads_per_hand or 1)
             return {
                 message = 'Threaded!',
                 sound = 'fm_threaded',
@@ -166,5 +202,23 @@ SMODS.Enhancement {
                 colour = G.C.GREEN
             }
         end
+    end
+}
+
+SMODS.Enhancement {
+    key = "suspend",
+    loc_txt = {
+        name = "Suspend",
+        text = {
+            "{C:green}STRAND{}",
+            "{C:red}Forcibly selected{} after two played hands",
+            "For each {C:green}Strand{} card scored before it,",
+            "gain {C:mult}+10{} Mult each",
+        }
+    },
+    atlas = 'Enhancements',
+    pos = {x=3, y=7},
+    calculate = function(self, card, context)
+        
     end
 }

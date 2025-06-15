@@ -23,7 +23,8 @@ SMODS.Enhancement {
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.config.center_key == "m_fm_radiant" or
                    handCard.config.center_key == "m_fm_restoration" or 
-                   handCard.config.center_key == "m_fm_scorch" then
+                   handCard.config.center_key == "m_fm_scorch" or
+                   handCard.config.center_key == "m_fm_cure" then
                     solar_count = solar_count + 1
                 end
             end
@@ -31,7 +32,8 @@ SMODS.Enhancement {
             for _, playedCard in ipairs(G.play.cards) do
                 if playedCard.config.center_key == "m_fm_radiant" or
                    playedCard.config.center_key == "m_fm_restoration" or 
-                   playedCard.config.center_key == "m_fm_scorch" then
+                   playedCard.config.center_key == "m_fm_scorch" or
+                   playedCard.config.center_key == "m_fm_cure" then
                     solar_count = solar_count + 1
                 end
             end
@@ -190,5 +192,22 @@ SMODS.Enhancement {
                 end
             end
         end
+    end
+}
+
+SMODS.Enhancement {
+    key = "cure",
+    loc_txt = {
+        name = "Cure",
+        text = {
+            "{C:attention}SOLAR{}",
+            "Each {C:attention}Cure{} card scored in one hand",
+            "will incrementally grant {C:blue}+50{} chips"
+        }
+    },
+    atlas = 'Enhancements',
+    pos = {x=1, y=7},
+    calculate = function(self, card, context)
+        
     end
 }

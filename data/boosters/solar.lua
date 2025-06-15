@@ -34,7 +34,8 @@ SMODS.Booster({
             local solar_enhancements = {
                 "m_fm_radiant",
                 "m_fm_restoration",
-                "m_fm_scorch"
+                "m_fm_scorch",
+                "m_fm_cure"
             }
             local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
             
@@ -112,7 +113,8 @@ SMODS.Booster({
             local solar_enhancements = {
                 "m_fm_radiant",
                 "m_fm_restoration",
-                "m_fm_scorch"
+                "m_fm_scorch",
+                "m_fm_cure"
             }
             local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
             
@@ -190,7 +192,8 @@ SMODS.Booster({
             local solar_enhancements = {
                 "m_fm_radiant",
                 "m_fm_restoration",
-                "m_fm_scorch"
+                "m_fm_scorch",
+                "m_fm_cure"
             }
             local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
             

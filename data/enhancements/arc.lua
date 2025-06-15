@@ -138,3 +138,22 @@ SMODS.Enhancement {
         end
     end
 }
+
+SMODS.Enhancement {
+    key = "bolt_charge",
+    loc_txt = {
+        name = "Bolt Charge",
+        text = {
+            "{C:blue}ARC{}",
+            "Scoring this card will grant 1 stack of {C:blue}Bolt Charge{}",
+            "Scoring it with other cards with the same suit will give 2 stacks each",
+            "Reaching 10 stacks of {C:blue}Bolt Charge{} will grant {X:mult,C:white}X3.5{} Mult",
+            "{C:inactive}(Currently {C:attention}#1#/10{C:inactive} stacks)"
+        }
+    },
+    atlas = 'Enhancements',
+    pos = {x=2, y=7},
+    calculate = function(self, card, context)
+        
+    end
+}

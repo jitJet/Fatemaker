@@ -52,18 +52,23 @@ SMODS.Enhancement {
                        playedCard.config.center == G.P_CENTERS.m_fm_unravel or
                        playedCard.config.center == G.P_CENTERS.m_fm_wovenmail or
                        playedCard.config.center == G.P_CENTERS.m_fm_tangle or
+                       playedCard.config.center == G.P_CENTERS.m_fm_suspend or
                        playedCard.config.center == G.P_CENTERS.m_fm_resonant or
+                       playedCard.config.center == G.P_CENTERS.m_fm_rooted or
                        playedCard.config.center == G.P_CENTERS.m_fm_finalized or
                        playedCard.config.center == G.P_CENTERS.m_fm_dissected or
                        playedCard.config.center == G.P_CENTERS.m_fm_radiant or
+                       playedCard.config.center == G.P_CENTERS.m_fm_cure or
                        playedCard.config.center == G.P_CENTERS.m_fm_restoration or
                        playedCard.config.center == G.P_CENTERS.m_fm_scorch or
                        playedCard.config.center == G.P_CENTERS.m_fm_blinded or
                        playedCard.config.center == G.P_CENTERS.m_fm_amplified or
+                       playedCard.config.center == G.P_CENTERS.m_fm_bolt_charge or
                        playedCard.config.center == G.P_CENTERS.m_fm_jolt or
                        playedCard.config.center == G.P_CENTERS.m_fm_volatile or
                        playedCard.config.center == G.P_CENTERS.m_fm_devour or
-                       playedCard.config.center == G.P_CENTERS.m_fm_overshield then
+                       playedCard.config.center == G.P_CENTERS.m_fm_overshield or
+                       playedCard.config.center == G.P_CENTERS.m_fm_suppress then
                         special_count = special_count + 1
                     end
                 end

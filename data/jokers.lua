@@ -1,49 +1,49 @@
-SMODS.Joker{
-    key = "balance",
-    loc_txt = {
-        name = "Facet of Balance",
-        text = {
-            "If the total Chip or Mult amount",
-            "is lower than the other, {C:attention}sacrifice a",
-            "quarter of the higher amount{} to be added",
-            "to the lower amount"
-        }
-    },
-    atlas = 'Jokers',
-    rarity = 2,
-    cost = 4,
-    blueprint_compat = true,
-    eternal_compat = true,
-    perishable_compat = true,
-    unlocked = true,
-    discovered = true,
-    pos = {x=0, y=0},
-    calculate = function(self, card, context)
-        if context.joker_main then
-            if hand_chips > mult then
-                local quartered_chips = hand_chips / 4
-                hand_chips = hand_chips - quartered_chips
-                mult = mult + quartered_chips
-                update_hand_text({delay = 0}, {chips = hand_chips, mult = mult})
-                return {
-                    message = "+" .. quartered_chips .. " Mult",
-                    colour = G.C.MULT,
-                    card = card
-                }
-            elseif hand_chips < mult then
-                local quartered_mult = mult / 4
-                mult = mult - quartered_mult
-                hand_chips = hand_chips + quartered_mult
-                update_hand_text({delay = 0}, {chips = hand_chips, mult = mult})
-                return {
-                    message = "+" .. quartered_mult,
-                    colour = G.C.CHIPS,
-                    card = card
-                }
-            end
-        end
-    end
-}
+-- SMODS.Joker{
+--     key = "balance",
+--     loc_txt = {
+--         name = "Facet of Balance",
+--         text = {
+--             "If the total Chip or Mult amount",
+--             "is lower than the other, {C:attention}sacrifice a",
+--             "quarter of the higher amount{} to be added",
+--             "to the lower amount"
+--         }
+--     },
+--     atlas = 'Jokers',
+--     rarity = 2,
+--     cost = 4,
+--     blueprint_compat = true,
+--     eternal_compat = true,
+--     perishable_compat = true,
+--     unlocked = true,
+--     discovered = true,
+--     pos = {x=0, y=0},
+--     calculate = function(self, card, context)
+--         if context.joker_main then
+--             if hand_chips > mult then
+--                 local quartered_chips = hand_chips / 4
+--                 hand_chips = hand_chips - quartered_chips
+--                 mult = mult + quartered_chips
+--                 update_hand_text({delay = 0}, {chips = hand_chips, mult = mult})
+--                 return {
+--                     message = "+" .. quartered_chips .. " Mult",
+--                     colour = G.C.MULT,
+--                     card = card
+--                 }
+--             elseif hand_chips < mult then
+--                 local quartered_mult = mult / 4
+--                 mult = mult - quartered_mult
+--                 hand_chips = hand_chips + quartered_mult
+--                 update_hand_text({delay = 0}, {chips = hand_chips, mult = mult})
+--                 return {
+--                     message = "+" .. quartered_mult,
+--                     colour = G.C.CHIPS,
+--                     card = card
+--                 }
+--             end
+--         end
+--     end
+-- }
 
 SMODS.Joker{
     key = "well_of_radiance",
@@ -87,7 +87,8 @@ SMODS.Joker{
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
                        scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_scorch then
+                       scoringCard.config.center == G.P_CENTERS.m_fm_scorch or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_cure then
                         solar_count = solar_count + 1
                     end
                 end
@@ -207,8 +208,9 @@ SMODS.Joker{
             local solar_count = 0
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_scorch then
+                    scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
+                    scoringCard.config.center == G.P_CENTERS.m_fm_scorch or
+                    scoringCard.config.center == G.P_CENTERS.m_fm_cure then
                     solar_count = solar_count + 1
                 end
             end
@@ -248,7 +250,8 @@ SMODS.Joker{
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_radiant or
                        scoringCard.config.center == G.P_CENTERS.m_fm_restoration or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_scorch then
+                       scoringCard.config.center == G.P_CENTERS.m_fm_scorch or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_cure then
                         has_solar = true
                         break
                     end
@@ -264,7 +267,8 @@ SMODS.Joker{
             if card.ability.extra.state == "loaded" and
                (context.other_card.config.center == G.P_CENTERS.m_fm_radiant or
                 context.other_card.config.center == G.P_CENTERS.m_fm_restoration or
-                context.other_card.config.center == G.P_CENTERS.m_fm_scorch) then
+                context.other_card.config.center == G.P_CENTERS.m_fm_scorch or
+                context.other_card.config.center == G.P_CENTERS.m_fm_cure) then
                 
                 local retriggers = card.ability.extra.loaded_retriggers
                 
@@ -310,33 +314,34 @@ SMODS.Joker{
         extra = {
             charge = 0,
             state = "charging",
-            target_suit = "Hearts"
+            target_suit = nil
         }
     },
     init = function(self)
-        local suits = {"Hearts", "Diamonds", "Spades", "Clubs"}
+        local suits = SMODS.Suit.obj_buffer
         self.ability.extra.target_suit = suits[math.random(#suits)]
     end,
     loc_vars = function(self, info_queue, card)
         return { vars = { 
-            card.ability.extra.target_suit,
+            card.ability.extra.target_suit or "None",
             card.ability.extra.state == "charging" and 
                 card.ability.extra.charge .. "/5 Charging" or "Ready!"
         }}
     end,
     calculate = function(self, card, context)
         if context.end_of_round then
-            local suits = {"Hearts", "Diamonds", "Spades", "Clubs"}
+            local suits = SMODS.Suit.obj_buffer
             card.ability.extra.target_suit = suits[math.random(#suits)]
         end
- 
+
         if context.joker_main then
             if card.ability.extra.state == "charging" then
                 local arc_count = 0
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_jolt or
                        scoringCard.config.center == G.P_CENTERS.m_fm_amplified or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_blinded then
+                       scoringCard.config.center == G.P_CENTERS.m_fm_blinded or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_bolt_charge then
                         arc_count = arc_count + 1
                     end
                 end
@@ -459,7 +464,8 @@ SMODS.Joker{
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_jolt or
                    scoringCard.config.center == G.P_CENTERS.m_fm_amplified or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_blinded then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_blinded or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_bolt_charge then
                     arc_count = arc_count + 1
                 end
             end
@@ -585,7 +591,8 @@ SMODS.Joker{
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
                        scoringCard.config.center == G.P_CENTERS.m_fm_devour or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                       scoringCard.config.center == G.P_CENTERS.m_fm_volatile or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_suppress then
                         void_count = void_count + 1
                     end
                 end
@@ -623,7 +630,8 @@ SMODS.Joker{
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
                        scoringCard.config.center == G.P_CENTERS.m_fm_devour or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                       scoringCard.config.center == G.P_CENTERS.m_fm_volatile or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_suppress then
                         void_count = void_count + 1
                     end
                 end
@@ -669,21 +677,20 @@ SMODS.Sticker {
     },
     atlas = "Stickers",
     pos = {x = 1, y = 0},
-    config = {
-        extra = {
-            hands_remaining = 3,
-            uses_remaining = 3
-        }
-    },
+    config = {}, -- No need for extra here
     loc_vars = function(self, info_queue, card)
-        return { vars = { self.config.extra.uses_remaining } }
+        return { vars = { card.void_anchor_uses or 3 } }
     end,
     default_compat = true,
     calculate = function(self, card, context)
+        -- Initialize counters if not present
+        if card.void_anchor_uses == nil then card.void_anchor_uses = 3 end
+        if card.void_anchor_hands == nil then card.void_anchor_hands = 3 end
+
         if context.after then
             for i, handCard in ipairs(G.hand.cards) do
                 if handCard == card then
-                    if self.config.extra.uses_remaining > 0 then
+                    if card.void_anchor_uses > 0 then
                         if i > 1 then
                             G.hand.cards[i-1]:flip()
                             play_sound("fm_void_anchor")
@@ -696,12 +703,12 @@ SMODS.Sticker {
                             G.hand.cards[i+1]:set_ability(G.P_CENTERS.m_fm_volatile)
                             G.hand.cards[i+1]:flip() 
                         end
-                        self.config.extra.uses_remaining = self.config.extra.uses_remaining - 1
+                        card.void_anchor_uses = card.void_anchor_uses - 1
                     end
 
                     -- Handle countdown and destruction of the card
-                    self.config.extra.hands_remaining = self.config.extra.hands_remaining - 1
-                    if self.config.extra.hands_remaining <= 0 then
+                    card.void_anchor_hands = card.void_anchor_hands - 1
+                    if card.void_anchor_hands <= 0 then
                         card:start_dissolve({G.C.PURPLE})
                     end
                     break
@@ -765,7 +772,8 @@ SMODS.Joker{
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
                    scoringCard.config.center == G.P_CENTERS.m_fm_devour or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_volatile or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_suppress then
                     void_count = void_count + 1
                 end
             end
@@ -807,8 +815,9 @@ SMODS.Joker{
                     func = function()
                         target_card:juice_up()
                         SMODS.Stickers.fm_void_anchor:apply(target_card, true)
-                        SMODS.Stickers.fm_void_anchor.config.extra.uses_remaining = 3
-                        target_card.void_anchored = nil
+                        target_card.void_anchor_uses = 3
+                        target_card.void_anchor_hands = 3
+                        -- target_card.void_anchored = nil
                         card.ability.extra.state = "charging"
                         card.ability.extra.charge = 0
                         return true
@@ -922,7 +931,7 @@ SMODS.Joker{
                         (next(context.poker_hands["Full House"]) or next(context.poker_hands["Flush House"]))) or
                        next(context.poker_hands[card.ability.extra.freeze_hand]) then
                         
-                        -- Process existing Slow cards to Frozen first
+                        -- Process existing Slow cards to Freeze first
                         for _, playCard in ipairs(G.play.cards) do
                             if playCard.config.center == G.P_CENTERS.m_fm_slow then
                                 playCard:juice_up()
@@ -1107,7 +1116,8 @@ SMODS.Joker{
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_tangle or
                    scoringCard.config.center == G.P_CENTERS.m_fm_wovenmail or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_unravel then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_unravel or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_suspend or then
                     strand_count = strand_count + 1
                 end
             end
@@ -1212,7 +1222,8 @@ SMODS.Joker{
                 for _, scoringCard in ipairs(context.scoring_hand) do
                     if scoringCard.config.center == G.P_CENTERS.m_fm_tangle or
                        scoringCard.config.center == G.P_CENTERS.m_fm_unravel or
-                       scoringCard.config.center == G.P_CENTERS.m_fm_wovenmail then
+                       scoringCard.config.center == G.P_CENTERS.m_fm_wovenmail or
+                       scoringCard.config.center == G.P_CENTERS.m_fm_suspend then
                         strand_count = strand_count + 1
                     end
                 end
@@ -1385,7 +1396,8 @@ SMODS.Joker{
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_resonant or
                    scoringCard.config.center == G.P_CENTERS.m_fm_dissected or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_finalized then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_finalized or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_rooted then
                     resonance_count = resonance_count + 1
                 end
             end
@@ -1508,7 +1520,8 @@ SMODS.Joker{
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_resonant or
                    scoringCard.config.center == G.P_CENTERS.m_fm_dissected or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_finalized then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_finalized or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_rooted then
                     resonance_count = resonance_count + 1
                 end
             end
@@ -1549,7 +1562,8 @@ SMODS.Joker{
                 local enhancements = {
                     G.P_CENTERS.m_fm_resonant,
                     G.P_CENTERS.m_fm_dissected,
-                    G.P_CENTERS.m_fm_finalized
+                    G.P_CENTERS.m_fm_finalized,
+                    G.P_CENTERS.m_fm_rooted
                 }
                 
                 local enhancement = enhancements[math.random(#enhancements)]
@@ -1710,12 +1724,15 @@ SMODS.Joker{
                     G.P_CENTERS.m_fm_scorch,
                     G.P_CENTERS.m_fm_radiant,
                     G.P_CENTERS.m_fm_restoration,
+                    G.P_CENTERS.m_fm_cure,
                     G.P_CENTERS.m_fm_amplified,
+                    G.P_CENTERS.m_fm_bolt_charge,
                     G.P_CENTERS.m_fm_jolt,
                     G.P_CENTERS.m_fm_blinded,
                     G.P_CENTERS.m_fm_devour,
                     G.P_CENTERS.m_fm_volatile,
-                    G.P_CENTERS.m_fm_overshield
+                    G.P_CENTERS.m_fm_overshield,
+                    G.P_CENTERS.m_fm_suppress
                 }
                 
                 local dark_centers = {
@@ -1724,11 +1741,13 @@ SMODS.Joker{
                     G.P_CENTERS.m_fm_freeze,
                     G.P_CENTERS.m_fm_shatter,
                     G.P_CENTERS.m_fm_tangle,
+                    G.P_CENTERS.m_fm_suspend,
                     G.P_CENTERS.m_fm_wovenmail,
                     G.P_CENTERS.m_fm_unravel,
                     G.P_CENTERS.m_fm_resonant,
                     G.P_CENTERS.m_fm_dissected,
-                    G.P_CENTERS.m_fm_finalized
+                    G.P_CENTERS.m_fm_finalized,
+                    G.P_CENTERS.m_fm_rooted
                 }
                 
                 -- Helper function to check if a center is in a list
@@ -1839,17 +1858,20 @@ SMODS.Joker{
                 ["Void"] = {
                     G.P_CENTERS.m_fm_overshield,
                     G.P_CENTERS.m_fm_devour,
-                    G.P_CENTERS.m_fm_volatile
+                    G.P_CENTERS.m_fm_volatile,
+                    G.P_CENTERS.m_fm_suppress
                 },
                 ["Solar"] = {
                     G.P_CENTERS.m_fm_radiant,
+                    G.P_CENTERS.m_fm_cure,
                     G.P_CENTERS.m_fm_restoration,
                     G.P_CENTERS.m_fm_scorch
                 },
                 ["Arc"] = {
                     G.P_CENTERS.m_fm_jolt,
                     G.P_CENTERS.m_fm_amplified,
-                    G.P_CENTERS.m_fm_blinded
+                    G.P_CENTERS.m_fm_blinded,
+                    G.P_CENTERS.m_fm_bolt_charge
                 },
                 ["Stasis"] = {
                     G.P_CENTERS.m_fm_slow,
@@ -1860,12 +1882,14 @@ SMODS.Joker{
                 ["Strand"] = {
                     G.P_CENTERS.m_fm_tangle,
                     G.P_CENTERS.m_fm_wovenmail,
-                    G.P_CENTERS.m_fm_unravel
+                    G.P_CENTERS.m_fm_unravel,
+                    G.P_CENTERS.m_fm_suspend
                 },
                 ["Resonance"] = {
                     G.P_CENTERS.m_fm_resonant,
                     G.P_CENTERS.m_fm_dissected,
-                    G.P_CENTERS.m_fm_finalized
+                    G.P_CENTERS.m_fm_finalized,
+                    G.P_CENTERS.m_fm_rooted
                 },
                 ["Prismatic"] = {
                     G.P_CENTERS.m_fm_transcendent
@@ -2030,6 +2054,195 @@ SMODS.Joker{
 -- FRAGMENT JOKERS
 
 SMODS.Joker{
+    key = "echo_of_expulsion",
+    loc_txt = {
+        name = "Echo of Expulsion",
+        text = {
+            "If the played hand contains the same {C:purple}Void{} enhancements,",
+            " grant {X:mult,C:white}X1.5{} Mult and {X:blue,C:white}X1.5{} Chips but discard a random card"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=0, y=3},
+    config = { 
+        extra = { 
+            des = false,
+            over = 0,
+            devo = 0,
+            vola = 0,
+            supp = 0
+        } 
+    },
+    calculate = function(self, card, context)
+        if context.joker_main then
+            for _, scored_card in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scored_card, "m_fm_overshield") then
+                    card.ability.extra.over = card.ability.extra.over + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_devour") then
+                    card.ability.extra.devo = card.ability.extra.devo + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_volatile") then
+                    card.ability.extra.vola = card.ability.extra.vola + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_suppress") then
+                    card.ability.extra.supp = card.ability.extra.supp + 1
+                end
+            end
+            if card.ability.extra.over == #context.scoring_hand or 
+                card.ability.extra.devo == #context.scoring_hand or 
+                card.ability.extra.vola == #context.scoring_hand or
+                card.ability.extra.supp == #context.scoring_hand then
+                    card.ability.extra.des = true
+            end
+            card.ability.extra.over = 0
+            card.ability.extra.devo = 0
+            card.ability.extra.vola = 0
+            card.ability.extra.supp = 0
+            if card.ability.extra.des == true then
+                card.ability.extra.des = false
+                local any_selected = nil
+                local _cards = {}
+                for _, playing_card in ipairs(G.hand.cards) do
+                    _cards[#_cards + 1] = playing_card
+                end
+                for i = 1, 1 do
+                    if G.hand.cards[i] then
+                        local selected_card, card_index = pseudorandom_element(_cards, pseudoseed('Balalalala'))
+                        G.hand:add_to_highlighted(selected_card, true)
+                        table.remove(_cards, card_index)
+                        any_selected = true
+                    end
+                end
+                if any_selected then G.FUNCS.discard_cards_from_highlighted(nil, true) end
+                return {
+                    xchips  = 1.5,
+                    xmult = 1.5
+                 }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "echo_of_vigilance",
+    loc_txt = {
+        name = "Echo of Vigilance",
+        text = {
+            "Once per blind, if the last hand of a blind wins,", -- Part A works
+            "grant all scored cards {C:purple}Overshield{}",
+            "Discarding 3 or more {C:purple}Overshield{} cards", -- Part B adds a hand per each Overshielded card discarded as long as 3 or more cards are discarded
+            "will grant you {C:blue}+1{} hand" -- Triggers as many times as you meet the requirements
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=3},
+    config = {
+        {
+            flag = true
+        }
+    },
+    calculate = function(self, card, context)
+        local flag = true
+        local count = 0
+        if context.discard then
+            for i, discardedCard in ipairs(G.hand.highlighted) do
+                if SMODS.has_enhancement(discardedCard, "m_fm_overshield") then
+                    count = count + 1
+                end
+            end
+        end
+        if context.post_joker then
+            if flag == true then
+                if  count >= 3 then
+                    G.GAME.current_round.hands_left = G.GAME.current_round.hands_left + 1
+                    count = 0
+                    flag = false
+                end
+            end
+            if G.GAME.current_round.hands_left == 0 then
+                for i, scoringCard in ipairs(context.scoring_hand) do
+                    G.E_MANAGER:add_event(Event({
+                        trigger = "after",
+                        delay = 0.5,
+                        func = function()
+                            scoringCard:flip()
+                            scoringCard:juice_up()
+                            scoringCard:set_ability(G.P_CENTERS.m_fm_overshield)
+                            scoringCard:flip()
+                            return true
+                        end
+                    }))
+                end
+            end
+        end
+        if context.end_of_round then
+            flag = true
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "echo_of_persistence",
+    loc_txt = {
+        name = "Echo of Persistence",
+        text = {
+            "When at least one {C:purple}Void{} enhancement is included in a discard,", -- Wanted it to just be "When a Void card is discarded", but i couldn't make it work
+            "all cards discarded with it return back to your hand", 
+            "{C:red}-1{} discard",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=3},
+    calculate = function(self, card, context)
+        if context.setting_blind then
+            G.GAME.current_round.discards_left = G.GAME.current_round.discards_left - 1 
+        end
+        if context.discard then
+            local buffed = false
+            G.E_MANAGER:add_event(Event({
+                trigger = "immediate",
+                func = function()
+                    for i, discardedCard in ipairs(G.hand.highlighted) do
+                        if SMODS.has_enhancement(discardedCard, "m_fm_overshield") or 
+                        SMODS.has_enhancement(discardedCard, "m_fm_devour") or 
+                        SMODS.has_enhancement(discardedCard, "m_fm_volatile") or
+                        SMODS.has_enhancement(discardedCard, "m_fm_suppress") then
+                            buffed = true
+                        end
+                    end
+                    if buffed then
+                        for i, discardedCard in ipairs(G.hand.highlighted) do
+                            draw_card(G.discard, G.hand, 90, 'up', false, discardedCard)
+                            discardedCard:flip()
+                            return true
+                        end
+                    end
+                end
+            }))
+        end
+    end
+}
+
+SMODS.Joker{
     key = "echo_of_reprisal",
     loc_txt = {
         name = "Echo of Reprisal",
@@ -2048,14 +2261,15 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=8, y=1},
+    pos = {x=3, y=3},
     calculate = function(self, card, context)
         if context.joker_main then
             local void_suits = {}
             for _, scoringCard in ipairs(context.scoring_hand) do
                 if scoringCard.config.center == G.P_CENTERS.m_fm_overshield or
                    scoringCard.config.center == G.P_CENTERS.m_fm_devour or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_volatile then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_volatile or
+                   scoringCard.config.center == G.P_CENTERS.m_fm_suppress then
                     void_suits[scoringCard.base.suit] = true
                 end
             end
@@ -2071,17 +2285,91 @@ SMODS.Joker{
 
             for _, joker in ipairs(G.jokers.cards) do
                 if joker.config.center_key == "j_fm_ward_of_dawn" or joker.config.center_key == "j_fm_shadowshot" then
+                    if extra_charges > 0 then
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                local prev_charge = joker.ability.extra.charge or 0
+                                joker.ability.extra.charge = math.min(5, (joker.ability.extra.charge or 0) + extra_charges)
+                                if prev_charge < 5 and joker.ability.extra.charge >= 5 then
+                                    joker.ability.extra.state = "ready"
+                                    juice_card_until(joker, function() return joker.ability.extra.state == "ready" end, true)
+                                    SMODS.calculate_effect({
+                                        message = "Ready!",
+                                        sound = "fm_super_ready",
+                                        colour = G.C.PURPLE
+                                    }, joker)
+                                else
+                                    SMODS.calculate_effect({
+                                        message = "+" .. extra_charges .. " Charge",
+                                        colour = G.C.PURPLE,
+                                        sound = "fm_super_charge"
+                                    }, joker)
+                                end
+                                return true
+                            end
+                        }))
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "echo_of_instability",
+    loc_txt = {
+        name = "Echo of Instability",
+        text = {
+            "If your hand contains a {C:attention}#1#{}, grant",
+            "the first card that was scored {C:purple}Volatile{}",
+            "{C:inactive}(Changes each hand){}",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=3},
+    config = {
+        extra = {
+            required_hand = nil
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.required_hand or "None" } }
+    end,
+    calculate = function(self, card, context)
+        if context.after then
+            local hands = {}
+            for k, v in pairs(G.GAME.hands) do
+                if v.visible then  
+                    hands[#hands + 1] = k
+                end
+            end
+            if #hands > 0 then
+                card.ability.extra.required_hand = pseudorandom_element(hands, pseudoseed("PERFECT HATRED"))
+            end
+        end
+
+        if context.joker_main and card.ability.extra.required_hand then
+            if context.scoring_name == card.ability.extra.required_hand then
+                for _, scoringCard in ipairs(context.scoring_hand) do
                     G.E_MANAGER:add_event(Event({
+                        trigger = "after",
+                        delay = 0.5,
                         func = function()
-                            joker.ability.extra.charge = joker.ability.extra.charge + extra_charges
-                            SMODS.calculate_effect({
-                                message = "+" .. extra_charges .. " Charge",
-                                colour = G.C.PURPLE,
-                                sound = "fm_super_ready"
-                            }, joker)
+                            scoringCard:flip()
+                            scoringCard:juice_up()
+                            scoringCard:set_ability(G.P_CENTERS.m_fm_volatile)
+                            scoringCard:flip()
                             return true
                         end
                     }))
+                    break
                 end
             end
         end
@@ -2105,12 +2393,10 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=9, y=1},
+    pos = {x=5, y=3},
     calculate = function(self, card, context)
         if context.joker_main then
             for _, joker in ipairs(G.jokers.cards) do
-                -- Find a way to automatically grant devour like how Gathering Storm automatically grants Amplified
-                -- And also find a way to make it grant Devour after Shadowshot's activation
                 if joker.config.center_key == "j_fm_ward_of_dawn" or joker.config.center_key == "j_fm_shadowshot" then
                     if joker.ability.extra.state == "ready" and not joker.ability.extra.starvation_applied then
                         joker.ability.extra.starvation_applied = true
@@ -2126,7 +2412,7 @@ SMODS.Joker{
                             local target = unenhanced[math.random(#unenhanced)]
                             SMODS.calculate_effect({
                                 message = "Devoured!",
-                                sound = "fm_devour",
+                                sound = "fm_void_fragment",
                                 colour = G.C.PURPLE
                             }, target)
                             G.E_MANAGER:add_event(Event({
@@ -2164,7 +2450,7 @@ SMODS.Joker{
                         local target = unenhanced[math.random(#unenhanced)]
                         SMODS.calculate_effect({
                             message = "Devoured!",
-                            sound = "fm_devour",
+                            sound = "fm_void_fragment",
                             colour = G.C.PURPLE
                         }, target)
                         G.E_MANAGER:add_event(Event({
@@ -2177,6 +2463,1008 @@ SMODS.Joker{
                         }))
                     end
                 end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ember_of_wonder",
+    loc_txt = {
+        name = "Ember of Wonder",
+        text = {
+            "{c:attention}Igniting{} 2 {C:attention}Scorch{} cards in one hand",
+            "will instantly charge one of your {C:attention}Solar Super{} cards",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=0, y=4},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            -- Count ignited Scorch cards in the scoring hand
+            local ignited_scorch = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_scorch and
+                scoringCard.ability.extra.stacks and scoringCard.ability.extra.stacks >= 3 then
+                    ignited_scorch = ignited_scorch + 1
+                end
+            end
+
+            if ignited_scorch >= 2 then
+                -- Find all Solar Super Jokers in hand
+                local solar_supers = {}
+                for _, joker in ipairs(G.jokers.cards) do
+                    if joker.config.center_key == "j_fm_well_of_radiance" or joker.config.center_key == "j_fm_golden_gun" then
+                        table.insert(solar_supers, joker)
+                    end
+                end
+
+                if #solar_supers > 0 then
+                    local target_joker = solar_supers[math.random(#solar_supers)]
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            target_joker.ability.extra.charge = 5
+                            target_joker.ability.extra.state = "ready"
+                            juice_card_until(target_joker, function() return target_joker.ability.extra.state == "ready" end, true)
+                            SMODS.calculate_effect({
+                                message = "Instant Charge!",
+                                sound = "fm_super_charge",
+                                colour = G.C.ORANGE
+                            }, target_joker)
+                            return true
+                        end
+                    }))
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ember_of_tempering",
+    loc_txt = {
+        name = "Ember of Tempering",
+        text = {
+            "If a {C:attention}Solar{} enhanced card is scored, grant the", -- I wanted it to be "Every other scored Solar card grants the leftmost unenhanced...", but it broke somewhere despite not touching it...
+            "leftmost card in hand a random {C:attention}Solar{} enhancement",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=4},
+    calculate = function(self, card, context)
+        local count = 0
+        local loop = 0
+        local enhancements = {
+            G.P_CENTERS.m_fm_radiant,
+            G.P_CENTERS.m_fm_scorch,
+            G.P_CENTERS.m_fm_restoration,
+            G.P_CENTERS.m_fm_cure
+        }
+        if context.after then
+            for i, Card in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(Card, "m_fm_radiant") or SMODS.has_enhancement(Card, "m_fm_restoration") or SMODS.has_enhancement(Card, "m_fm_scorch") or SMODS.has_enhancement(Card, "m_fm_cure") then
+                    count = count + 1
+                end
+            end
+            count = math.ceil(count/2)
+            if count > 0 then
+                for i, Card in ipairs(G.hand.cards) do
+                    G.E_MANAGER:add_event(Event({
+                        trigger = "after",
+                        delay = 0.5,
+                        func = function()
+                            Card:flip()
+                            Card:juice_up()
+                            Card:set_ability(pseudorandom_element(enhancements, pseudoseed('balatrue...')))
+                            Card:flip()
+                            return true
+                        end
+                    }))
+                    loop = loop + 1
+                    if loop >= count then
+                        count = 0
+                        loop = 0
+                        break
+                    end
+                    return {
+                        message = "Enhanced!",
+                        card = Card,
+                    }
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ember_of_char",
+    loc_txt = {
+        name = "Ember of Char",
+        text = {
+            "When a card {C:attention}Ignites{}, grant all {C:attention}Scorch{}", -- Works now, at first i wanted it for every card ignited but this feels more balanced
+            "cards scored an additional {C:attention}Scorch{} stack",
+            "(once per hand)"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=4},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local ignis = false
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_scorch") then
+                    if scoredCard.ability.extra.stacks >= 3 then
+                        ignis = true
+                    end
+                end
+            end
+            if ignis == true then
+                ignis = false
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if SMODS.has_enhancement(scoredCard, "m_fm_scorch") then
+                        if scoredCard.ability.extra.stacks < 3 then
+                            scoredCard.ability.extra.stacks = scoredCard.ability.extra.stacks + 1
+
+                        end
+                    end
+                end
+                return {
+                    message = "BURN!",
+                    sound = "fm_solar_fragment",
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ember_of_mercy",
+    loc_txt = {
+        name = "Ember of Mercy",
+        text = {
+            "Every unenhanced card that is retriggered", -- IT WORKS, FUCK YEA
+            "is sent back to the hand with {C:attention}Restoration{}",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=3, y=4},
+    calculate = function(self, card, context)
+        if context.individual and context.cardarea == G.play and not context.end_of_round then
+            context.other_card.count = (context.other_card.count or 0) + 1
+        end
+        if context.joker_main then
+            for i, Card in ipairs(context.scoring_hand) do
+                if Card.count >= 2 then
+                    Card.count = 0
+                    if Card.ability.set ~= "Enhanced" then
+                        G.E_MANAGER:add_event(Event({
+                            trigger = "immediate",
+                            func = function()
+                                draw_card(G.discard, G.hand, 90, 'up', false, Card)
+                                Card:set_ability(G.P_CENTERS.m_fm_restoration)
+                                Card:flip()
+                                return true
+                            end
+                        }))
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ember_of_torches",
+    loc_txt = {
+        name = "Ember of Torches",
+        text = {
+            "Scored {C:attention{}Restoration{} cards become {C:attention}Radiant{} and gain a rank", -- Works! Very simple but I like it
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=4},
+    calculate = function(self, card, context)
+        if context.post_joker then
+            for i, Card in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(Card, "m_fm_restoration") then
+                    local current_rank = Card.base.value
+                    local next_rank = nil
+                    local found_current = false
+                    for _, rank_key in ipairs(SMODS.Rank.obj_buffer) do
+                        if found_current then
+                            next_rank = rank_key
+                            break
+                        end
+                        if rank_key == current_rank then
+                            found_current = true
+                        end
+                    end
+                    G.E_MANAGER:add_event(Event({
+                        trigger = "immediate",
+                        func = function()
+                            Card:flip()
+                            Card:set_ability(G.P_CENTERS.m_fm_radiant)
+                            if Card.base.value ~= "Ace" then
+                                SMODS.change_base(Card, Card.base.suit, next_rank)
+                            end
+                            Card:flip()
+                            return true
+                        end
+                    }))
+                    return {
+                        message = "Radiant!",
+                        sound = "fm_solar_fragment",
+                    }
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ember_of_solace",
+    loc_txt = {
+        name = "Ember of Solace",
+        text = {
+            "Retrigger all scored cards once if a", -- Couldn't make it retrigger only Restoration and Radiant cards, so I just ran with this
+            "a scored card has {C:attention}Restoration{} or {C:attention}Radiant{}",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=5, y=4},
+    calculate = function(self, card, context)
+        if context.cardarea == G.play and context.repetition and not context.repetition_only then
+            local retry = false
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_radiant") or SMODS.has_enhancement(scoredCard, "m_fm_restoration") then
+                    retry = true
+                end
+            end
+            if retry == true then
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    return {
+                        message = "Again!",
+                        sound = "fm_solar_fragment",
+                        repetitions = 1,
+                    }
+                end
+                retry = false
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "spark_of_brilliance",
+    loc_txt = {
+        name = "Spark of Brilliance",
+        text = {
+            "Scored {C:blue}Blinded{} cards {C:blue}blind{} all unenhanced cards scored next to them", -- Works!! Remember to fix the blinded cards not being flipped when drawn!
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=0, y=5},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            for i, Card in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(Card, "m_fm_blinded") then
+                    if context.scoring_hand[i-1] then
+                        if context.scoring_hand[i-1].ability.set ~= "Enhanced" then
+                            G.E_MANAGER:add_event(Event({
+                                trigger = "immediate",
+                                func = function()
+                                    context.scoring_hand[i-1]:flip()
+                                    context.scoring_hand[i-1]:set_ability(G.P_CENTERS.m_fm_blinded)
+                                    context.scoring_hand[i-1]:flip()
+                                    return true
+                                end
+                            }))
+                        end
+                    end
+                    if context.scoring_hand[i+1] then
+                        if context.scoring_hand[i+1].ability.set ~= "Enhanced" then
+                            G.E_MANAGER:add_event(Event({
+                                trigger = "immediate",
+                                func = function()
+                                    context.scoring_hand[i+1]:flip()
+                                    context.scoring_hand[i+1]:set_ability(G.P_CENTERS.m_fm_blinded)
+                                    context.scoring_hand[i+1]:flip()
+                                    return true
+                                end
+                            }))
+                        end
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "spark_of_instinct",
+    loc_txt = {
+        name = "Spark of Instinct",
+        text = {
+            "When you have 2 hands or less remaining", -- Works!!
+            "{C:blue}Jolt{} all unenhanced cards scored",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=5},
+    calculate = function(self, card, context)
+        if context.before then
+            if G.GAME.current_round.hands_left < 2 then
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if scoredCard.ability.set ~= "Enhanced" then
+                        scoredCard:flip()
+                        scoredCard:set_ability(G.P_CENTERS.m_fm_jolt)
+                        scoredCard:flip()
+                    end
+                end
+                return {
+                    message = "Shocking!",
+                    sound = "fm_arc_fragment",
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "spark_of_amplitude",
+    loc_txt = {
+        name = "Spark of Amplitude",
+        text = {
+            "Priming 3 or more {C:blue}Amplified{} cards in one hand",
+            "will grant extra charges depending on the number of {C:blue}Amplified{} cards primed",
+            "to one random {C:blue}Arc Super{} card in hand",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=5},
+    calculate = function(self, card, context)
+        if context.before then
+            -- Count primed Amplified cards in the scoring hand
+            local primed_amplified = 0
+            for _, handCard in ipairs(G.hand.cards) do
+                if handCard.config.center == G.P_CENTERS.m_fm_amplified and
+                   handCard.ability.extra.hands_seen >= 1 then
+                    primed_amplified = primed_amplified + 1
+                end
+            end
+
+            if primed_amplified >= 3 then
+                -- Find all Arc Super Jokers in hand
+                local arc_supers = {}
+                for _, joker in ipairs(G.jokers.cards) do
+                    if joker.config.center_key == "j_fm_thundercrash" or joker.config.center_key == "j_fm_gathering_storm" then
+                        table.insert(arc_supers, joker)
+                    end
+                end
+
+                if #arc_supers > 0 then
+                    local target_joker = arc_supers[math.random(#arc_supers)]
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            target_joker.ability.extra.charge = math.min(5, (target_joker.ability.extra.charge or 0) + primed_amplified)
+                            SMODS.calculate_effect({
+                                message = "+" .. primed_amplified .. " Charge!",
+                                sound = "fm_super_charge",
+                                colour = G.C.BLUE
+                            }, target_joker)
+                            if target_joker.ability.extra.charge >= 5 then
+                                target_joker.ability.extra.state = "ready"
+                                juice_card_until(target_joker, function() return target_joker.ability.extra.state == "ready" end, true)
+                            end
+                            return true
+                        end
+                    }))
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "spark_of_beacons",
+    loc_txt = {
+        name = "Spark of Beacons",
+        text = {
+            "Scored {C:blue}Amplified{} cards {C:blue}Amplifies{} and primes an unenhanced card in hand", -- Works!
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=3, y=5},
+    calculate = function(self, card, context)
+        if context.after then
+            for j, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_amplified") then
+                    local _cards = {}
+                    for _, playing_card in ipairs(G.hand.cards) do
+                        _cards[#_cards + 1] = playing_card
+                    end
+                    for i = 1, 1 do
+                        if G.hand.cards[i] then
+                            while true do
+                                local selected_card, card_index = pseudorandom_element(_cards, pseudoseed('Balalalala'))
+                                if selected_card.ability.set ~= "Enhanced" then
+                                    selected_card:flip()
+                                    selected_card:set_ability(G.P_CENTERS.m_fm_amplified)
+                                    selected_card:flip()
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "spark_of_resistance",
+    loc_txt = {
+        name = "Spark of Resistance",
+        text = {
+            "Gain {C:blue}+1{} hand", -- The hardest one to date, but I got it working
+            "Gain another hand if you have",
+            "more than 20 {C:blue}Arc{} cards in your deck"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=5},
+    calculate = function(self, card, context)
+        if context.setting_blind then
+            G.GAME.current_round.hands_left = G.GAME.current_round.hands_left + 1
+
+            local arc_count = 0
+            for i = #G.deck.cards, 1, -1 do
+                if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_amplified or
+                   G.deck.cards[i].config.center == G.P_CENTERS.m_fm_jolt or
+                   G.deck.cards[i].config.center == G.P_CENTERS.m_fm_blinded or
+                   G.deck.cards[i].config.center == G.P_CENTERS.m_fm_bolt_charge then
+                    arc_count = arc_count + 1
+                end
+            end
+
+            if arc_count > 20 then
+                G.GAME.current_round.hands_left = G.GAME.current_round.hands_left + 1
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "spark_of_feedback",
+    loc_txt = {
+        name = "Spark of Feedback",
+        text = {
+            "If your hand will score less chips than your previous hand", -- Works!!
+            "double chips of the this hand",
+            "(Can't trigger on hand 1)",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=5, y=5},
+    config = { 
+        extra = { 
+            lastHand = 0
+        } 
+    },
+    calculate = function(self, card, context)
+        if context.final_scoring_step then
+            if hand_chips*mult < card.ability.extra.lastHand then
+                return {
+                    xchips = 2,
+                }
+            end
+        end
+        if context.final_scoring_step then
+            card.ability.extra.lastHand = hand_chips*mult
+        end
+        if context.end_of_round then
+            card.ability.extra.lastHand = 0
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "whisper_of_bonds",
+    loc_txt = {
+        name = "Whisper of Bonds",
+        text = {
+            "Once per blind, scoring a {C:spades}Freeze{} card",
+            "will grant super energy charges to a random {C:spades}Stasis Super{} card",
+            "depending on the number of {C:spades}Shatter{} cards remaining in hand",
+            "{C:inactive}(Used this blind: {C:attention}#1#{C:inactive})"
+            -- Works
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=0, y=6},
+    config = {
+        extra = {
+            used_this_blind = false
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        local status = card.ability.extra.used_this_blind and "Used" or "Unused"
+        return { vars = { status } }
+    end,
+    calculate = function(self, card, context)
+        -- Reset flag at the start of each blind
+        if context.setting_blind then
+            card.ability.extra.used_this_blind = false
+        end
+
+        if context.joker_main and not card.ability.extra.used_this_blind then
+            -- Check if a Freeze card was scored
+            local freeze_scored = false
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_freeze then
+                    freeze_scored = true
+                    break
+                end
+            end
+
+            if freeze_scored then
+                -- Count Shatter cards in hand
+                local shatter_count = 0
+                for _, handCard in ipairs(G.hand.cards) do
+                    if handCard.config.center == G.P_CENTERS.m_fm_shatter then
+                        shatter_count = shatter_count + 1
+                    end
+                end
+
+                if shatter_count > 0 then
+                    -- Find all Stasis Super Jokers in hand
+                    local stasis_supers = {}
+                    for _, joker in ipairs(G.jokers.cards) do
+                        if joker.config.center_key == "j_fm_winters_wrath" or joker.config.center_key == "j_fm_glacial_quake" then
+                            table.insert(stasis_supers, joker)
+                        end
+                    end
+
+                    if #stasis_supers > 0 then
+                        local target_joker = stasis_supers[math.random(#stasis_supers)]
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                target_joker.ability.extra.charge = math.min(5, (target_joker.ability.extra.charge or 0) + shatter_count)
+                                SMODS.calculate_effect({
+                                    message = "+" .. shatter_count .. " Charge!",
+                                    sound = "fm_super_charge",
+                                    colour = G.C.SUITS.Spades
+                                }, target_joker)
+                                if target_joker.ability.extra.charge >= 5 then
+                                    target_joker.ability.extra.state = "ready"
+                                    juice_card_until(target_joker, function() return target_joker.ability.extra.state == "ready" end, true)
+                                end
+                                return true
+                            end
+                        }))
+                    end
+                end
+
+                card.ability.extra.used_this_blind = true
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "whisper_of_rending",
+    loc_txt = {
+        name = "Whisper of Rending",
+        text = {
+            "{C:spades}Freeze{} cards gain an extra return",
+            "Grants {C:mult}+10{} Mult and {C:blue}+50{} Chips",
+            "after using a {C:spades}Freeze{} card's extra return",
+            -- Works
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=6},
+    calculate = function(self, card, context)
+    -- Find a way to reset 3 returns back to 2 if the fragment is not active
+    -- Always ensure all Freeze cards have at least 3 returns while this Joker is active
+        for _, handCard in ipairs(G.hand.cards) do
+            if handCard.config.center == G.P_CENTERS.m_fm_freeze then
+                if not handCard.ability.extra.max_returns or handCard.ability.extra.max_returns < 3 then
+                    handCard.ability.extra.max_returns = 3
+                end
+            end
+        end
+
+        -- Grant bonus when a Freeze card uses its extra return
+        if context.before then
+            local bonus_mult = 0
+            local bonus_chips = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_freeze and
+                scoringCard.ability.extra.max_returns and scoringCard.ability.extra.max_returns > 2 and
+                scoringCard.ability.extra.times_returned == scoringCard.ability.extra.max_returns then
+                    bonus_mult = bonus_mult + 10
+                    bonus_chips = bonus_chips + 50
+                end
+            end
+            if bonus_mult > 0 or bonus_chips > 0 then
+                return {
+                    message = "Rended!",
+                    mult = bonus_mult,
+                    chips = bonus_chips,
+                    colour = G.C.SUITS.Spades,
+                    sound = "fm_stasis_fragment"
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "whisper_of_fissures",
+    loc_txt = {
+        name = "Whisper of Fissures",
+        text = {
+            "Retrigger all scored",
+            "{C:spades}Shatter{} cards"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=6},
+    calculate = function(self, card, context)
+        if context.cardarea == G.play and context.repetition and not context.repetition_only then
+            local retriggered = false
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center == G.P_CENTERS.m_fm_shatter then
+                    retriggered = true
+                    -- G.E_MANAGER:add_event(Event({
+                    --     func = function()
+                    --         scoringCard:juice_up()
+                    --         return true
+                    --     end
+                    -- }))
+                end
+            end
+            if retriggered == true then
+                return {
+                    message = "Again!",
+                    sound = "fm_stasis_fragment",
+                    repetitions = 1,
+                    colour = G.C.SUITS.Spades
+                }
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "whisper_of_fractures",
+    loc_txt = {
+        name = "Whisper of Fractures",
+        text = {
+            "Once per blind, when 2 {C:spades}Shatter{} cards",
+            "gets destroyed in a single hand, gain {C:red}+2{} discards",
+            "and {C:blue}+1{} hand",
+            "{C:inactive}(Used this blind: {C:attention}#1#{C:inactive})"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=3, y=6},
+    config = {
+        extra = {
+            used_this_blind = false
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        local status = card.ability.extra.used_this_blind and "Used" or "Unused"
+        return { vars = { status } }
+    end,
+    calculate = function(self, card, context)
+        if context.setting_blind then
+            card.ability.extra.used_this_blind = false
+        end
+
+        if context.after and not card.ability.extra.used_this_blind then
+            local shattered = G.FM_SHATTERED_THIS_HAND or 0
+            if shattered >= 2 then
+                card.ability.extra.used_this_blind = true
+                G.GAME.current_round.discards_left = G.GAME.current_round.discards_left + 2
+                G.GAME.current_round.hands_left = G.GAME.current_round.hands_left + 1
+                G.FM_SHATTERED_THIS_HAND = 0
+                return {
+                    message = "Bolstered!",
+                    sound = "fm_stasis_fragment",
+                    colour = G.C.SUITS.Spades
+                }
+            end
+            -- Reset after checking
+            G.FM_SHATTERED_THIS_HAND = 0
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "whisper_of_reversal",
+    loc_txt = {
+        name = "Whisper of Reversal",
+        text = {
+            "Scoring lower than your previous hand",
+            "will grant {C:spades}Slow{} to a random",
+            "unenhanced card in hand",
+            "{C:inactive}(Last score: {C:attention}#1#{C:inactive})"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=6},
+    config = {
+        extra = {
+            last_score = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.last_score or 0 } }
+    end,
+    calculate = function(self, card, context)
+        -- After scoring, check if current score is lower than previous
+        if context.final_scoring_step then
+            local current_score = hand_chips * mult
+            if card.ability.extra.last_score > 0 and current_score < card.ability.extra.last_score then
+                -- Find all unenhanced cards in hand
+                local unenhanced = {}
+                for _, handCard in ipairs(G.hand.cards) do
+                    if handCard.ability.set ~= "Enhanced" then
+                        table.insert(unenhanced, handCard)
+                    end
+                end
+                if #unenhanced > 0 then
+                    local target = unenhanced[math.random(#unenhanced)]
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            target:flip()
+                            target:set_ability(G.P_CENTERS.m_fm_slow)
+                            target:flip()
+                            return true
+                        end
+                    }))
+                    SMODS.calculate_effect({
+                        message = "Slowed!",
+                        sound = "fm_stasis_fragment",
+                        colour = G.C.SUITS.Spades
+                    }, target)
+                end
+            end
+            -- Update last_score for next hand
+            card.ability.extra.last_score = current_score
+        end
+        -- Reset last_score at end of round
+        if context.end_of_round then
+            card.ability.extra.last_score = 0
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "whisper_of_durance",
+    loc_txt = {
+        name = "Whisper of Durance",
+        text = {
+            "Playing {C:attention}3{} of the same hand type in a row will",
+            "grant {C:attention}$10{} to every {C:spades}Shatter{}",
+            "card in hand",
+            "{C:inactive}(Streak: {C:attention}#1#{C:inactive}, {C:attention}#2#{C:inactive}/3)"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=5, y=6},
+    config = {
+        extra = {
+            current_hand_type = nil,
+            hand_count = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        local hand_type = card.ability.extra.current_hand_type or "None"
+        local hand_count = card.ability.extra.hand_count or 0
+        return { vars = { hand_type, hand_count } }
+    end,
+    calculate = function(self, card, context)
+        -- Reset streak at the start of a blind
+        if context.setting_blind then
+            card.ability.extra.current_hand_type = nil
+            card.ability.extra.hand_count = 0
+        end
+
+        -- After scoring, update streak and apply bonus if needed
+        if context.final_scoring_step then
+            local hand_type = context.scoring_name
+            if hand_type then
+                if card.ability.extra.current_hand_type == hand_type then
+                    card.ability.extra.hand_count = card.ability.extra.hand_count + 1
+                else
+                    card.ability.extra.current_hand_type = hand_type
+                    card.ability.extra.hand_count = 1
+                end
+
+                if card.ability.extra.hand_count >= 3 then
+                    -- Grant $10 to every Shatter card in hand
+                    for _, handCard in ipairs(G.hand.cards) do
+                        if handCard.config.center == G.P_CENTERS.m_fm_shatter then
+                            handCard.ability.extra.money = (handCard.ability.extra.money or 0) + 10
+                            SMODS.calculate_effect({
+                                message = "+$10",
+                                sound = "fm_stasis_fragment",
+                                colour = G.C.SUITS.Spades
+                            }, handCard)
+                        end
+                    end
+                    -- Reset streak after reward
+                    card.ability.extra.hand_count = 0
+                    card.ability.extra.current_hand_type = nil
+                    return {
+                        message = "Cash Out!",
+                        sound = "fm_stasis_fragment",
+                        colour = G.C.SUITS.Spades
+                    }
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "thread_of_evolution",
+    loc_txt = {
+        name = "Thread of Evolution",
+        text = {
+            "{C:green}Unravel{} cards gain {C:green}2 Threads{}",
+            "instead of 1"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=7},
+    calculate = function(self, card, context)
+        for _, handCard in ipairs(G.hand.cards) do
+            if handCard.config.center == G.P_CENTERS.m_fm_unravel then
+                handCard.ability.extra.threads_per_hand = 2
+            end
+        end
+        for i = #G.deck.cards, 1, -1 do
+            if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_unravel then
+                G.deck.cards[i].ability.extra.threads_per_hand = 2
             end
         end
     end

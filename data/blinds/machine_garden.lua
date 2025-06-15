@@ -58,22 +58,27 @@ SMODS.Blind{
                 if card.config.center == G.P_CENTERS.m_fm_radiant or
                    card.config.center == G.P_CENTERS.m_fm_restoration or
                    card.config.center == G.P_CENTERS.m_fm_scorch or
+                   card.config.center == G.P_CENTERS.m_fm_cure or
                    card.config.center == G.P_CENTERS.m_fm_amplified or
+                   card.config.center == G.P_CENTERS.m_fm_bolt_charge or
                    card.config.center == G.P_CENTERS.m_fm_jolt or
                    card.config.center == G.P_CENTERS.m_fm_blinded or
                    card.config.center == G.P_CENTERS.m_fm_volatile or
                    card.config.center == G.P_CENTERS.m_fm_devour or
-                   card.config.center == G.P_CENTERS.m_fm_overshield then
+                   card.config.center == G.P_CENTERS.m_fm_overshield or
+                   card.config.center == G.P_CENTERS.m_fm_suppress then
                     light_gained = light_gained + 2
                 -- Dark cards bonus (Void, Stasis, Strand)
                 elseif card.config.center == G.P_CENTERS.m_fm_resonant or
                        card.config.center == G.P_CENTERS.m_fm_finalized or
                        card.config.center == G.P_CENTERS.m_fm_dissected or
+                       card.config.center == G.P_CENTERS.m_fm_rooted or
                        card.config.center == G.P_CENTERS.m_fm_slow or
                        card.config.center == G.P_CENTERS.m_fm_freeze or
                        card.config.center == G.P_CENTERS.m_fm_stasis_crystal or
                        card.config.center == G.P_CENTERS.m_fm_shatter or
                        card.config.center == G.P_CENTERS.m_fm_tangle or
+                       card.config.center == G.P_CENTERS.m_fm_suspend or
                        card.config.center == G.P_CENTERS.m_fm_wovenmail or
                        card.config.center == G.P_CENTERS.m_fm_unravel then
                         dark_gained = dark_gained + 2

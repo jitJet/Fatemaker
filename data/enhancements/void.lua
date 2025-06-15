@@ -152,3 +152,21 @@ SMODS.Enhancement {
         end
     end
 }
+
+SMODS.Enhancement {
+    key = "suppress",
+    loc_txt = {
+        name = "Suppress",
+        text = {
+            "{C:purple}VOID{}",
+            "{C:red}Cannot be played{}",
+            "When in hand, grants {C:mult}+10{} Mult",
+            "for every {C:purple}Void{} card scored",
+        }
+    },
+    atlas = 'Enhancements',
+    pos = {x=0, y=7},
+    calculate = function(self, card, context)
+        
+    end
+}

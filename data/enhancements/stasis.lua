@@ -71,24 +71,26 @@ SMODS.Enhancement {
         name = "Freeze",
         text = {
             "{C:spades}STASIS{}",
-            "Returns to hand up to {C:attention}2{} times.",
+            "Returns to hand up to {C:attention}#2#{} times.",
             "Cards of the same suit to the left",
             "become {C:spades}Slowed{}",
-            "{C:inactive}(Currently {C:attention}#1#{C:inactive}/2 returns)"
+            "{C:inactive}(Currently {C:attention}#1#{C:inactive}/#2# returns)"
         }
     },
     atlas = 'Enhancements',
     config = {
         extra = {
-            times_returned = 0
+            times_returned = 0,
+            max_returns = 2
         }
     },
     set_ability = function(self, card, initial)
         card.ability.extra.times_returned = 0
+        card.ability.max_returns = card.ability.extra.max_returns or 2
     end,
     pos = {x=1, y=5},
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.times_returned or 0 } }
+        return { vars = { card.ability.extra.times_returned or 0, card.ability.extra.max_returns or 2 } }
     end,
     calculate = function(self, card, context)
         if context.cardarea == G.play and context.main_scoring then
@@ -157,6 +159,8 @@ SMODS.Enhancement {
         end
     
         if context.destroying_card and pseudorandom('shatter') < G.GAME.probabilities.normal / card.ability.extra.denom then
+            -- Increment global counter for shatters this hand for interactions with Whisper of Fractures
+            G.FM_SHATTERED_THIS_HAND = (G.FM_SHATTERED_THIS_HAND or 0) + 1
             return {
                 dollars = card.ability.extra.money,
                 message = 'Shattered!',

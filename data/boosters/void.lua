@@ -34,7 +34,8 @@ SMODS.Booster({
             local void_enhancements = {
                 "m_fm_overshield",
                 "m_fm_volatile",
-                "m_fm_devour"
+                "m_fm_devour",
+                "m_fm_suppress"
             }
             local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
             
@@ -112,7 +113,8 @@ SMODS.Booster({
             local void_enhancements = {
                 "m_fm_overshield",
                 "m_fm_volatile",
-                "m_fm_devour"
+                "m_fm_devour",
+                "m_fm_suppress",
             }
             local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
             
@@ -190,7 +192,8 @@ SMODS.Booster({
             local void_enhancements = {
                 "m_fm_overshield",
                 "m_fm_volatile",
-                "m_fm_devour"
+                "m_fm_devour",
+                "m_fm_suppress"
             }
             local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
             

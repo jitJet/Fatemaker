@@ -34,7 +34,8 @@ SMODS.Booster({
             local arc_enhancements = {
                 "m_fm_amplified",
                 "m_fm_jolt",
-                "m_fm_blinded"
+                "m_fm_blinded",
+                "m_fm_bolt_charge"
             }
             local selected_enhancement = arc_enhancements[math.random(#arc_enhancements)]
             
@@ -112,7 +113,8 @@ SMODS.Booster({
             local arc_enhancements = {
                 "m_fm_amplified",
                 "m_fm_jolt",
-                "m_fm_blinded"
+                "m_fm_blinded",
+                "m_fm_bolt_charge"
             }
             local selected_enhancement = arc_enhancements[math.random(#arc_enhancements)]
             
@@ -190,7 +192,8 @@ SMODS.Booster({
             local arc_enhancements = {
                 "m_fm_amplified",
                 "m_fm_jolt",
-                "m_fm_blinded"
+                "m_fm_blinded",
+                "m_fm_bolt_charge"
             }
             local selected_enhancement = arc_enhancements[math.random(#arc_enhancements)]
             

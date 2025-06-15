@@ -16,6 +16,24 @@ SMODS.ConsumableType ({
     shop_rate = 0
 })
 
+SMODS.ConsumableType ({
+    key = "traits",
+    primary_colour = HEX('96cbf9'),
+    secondary_colour = HEX('7cb3e3'),
+    loc_txt = {
+        name = "Trait",
+        collection = "Traits",
+        undiscovered = {
+            name = "Undiscovered",
+            text = {
+                "Banshee-44 sends his",
+                "regards, Guardian."
+            }
+        }
+    },
+    shop_rate = 1
+})
+
 function table.contains(table, element)
     for _, value in pairs(table) do
         if value == element then
@@ -48,20 +66,21 @@ G.FUNCS.draw_from_play_to_discard = function(e)
                    colour = G.C.SUITS.Spades
                })
            elseif v.config.center == G.P_CENTERS.m_fm_freeze then
-               if v.ability.extra.converted then
-                   draw_card(G.play, G.discard, it*100/play_count, 'down', false, v)
-               elseif v.ability.extra.times_returned < 2 then
-                   draw_card(G.play, G.hand, it*100/play_count, 'down', false, v)
-                   v.ability.extra.times_returned = v.ability.extra.times_returned + 1
-                   card_eval_status_text(v, 'extra', nil, nil, nil, {
-                       message = "Frozen!",
-                       sound = "fm_freeze",
-                       colour = G.C.SUITS.Spades
-                   })
-               else
-                   v.ability.extra.times_returned = 0
-                   draw_card(G.play, G.discard, it*100/play_count, 'down', false, v)
-               end
+                local max_returns = v.ability.extra.max_returns or 2
+                if v.ability.extra.converted then
+                    draw_card(G.play, G.discard, it*100/play_count, 'down', false, v)
+                elseif v.ability.extra.times_returned < max_returns then
+                    draw_card(G.play, G.hand, it*100/play_count, 'down', false, v)
+                    v.ability.extra.times_returned = v.ability.extra.times_returned + 1
+                    card_eval_status_text(v, 'extra', nil, nil, nil, {
+                        message = "Frozen!",
+                        sound = "fm_freeze",
+                        colour = G.C.SUITS.Spades
+                    })
+                else
+                    v.ability.extra.times_returned = 0
+                    draw_card(G.play, G.discard, it*100/play_count, 'down', false, v)
+                end
            else
                draw_card(G.play, G.discard, it*100/play_count, 'down', false, v)
            end
