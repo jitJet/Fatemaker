@@ -68,7 +68,7 @@ SMODS.Enhancement {
                 end
      
                 for i = 1, math.min(3, #eligible_cards) do
-                    local random_index = math.random(1, #eligible_cards)
+                    local random_index = pseudorandom("eligible_cards", 1, #eligible_cards)
                     local target_card = table.remove(eligible_cards, random_index)
                     target_card:flip()
                     SMODS.calculate_effect({
@@ -107,19 +107,37 @@ SMODS.Enhancement {
     },
     pos = {x=2, y=6},
     calculate = function(self, card, context)
+        local splinter_of_verity = false
+        for _, joker in ipairs(G.jokers.cards) do
+            if joker.config.center_key == "j_fm_splinter_of_verity" then
+                splinter_of_verity = true
+                break
+            end
+        end
         if context.cardarea == G.play and context.main_scoring then
             local original_rank_id = card:get_id()
             
-            local random_suit_index = math.random(1, #SMODS.Suit.obj_buffer)
+            local random_suit_index = pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('dissected_suit'))
             local new_suit = SMODS.Suit.obj_buffer[random_suit_index]
             
-            local random_rank_index = math.random(1, #SMODS.Rank.obj_buffer)
-            local new_rank = SMODS.Rank.obj_buffer[random_rank_index]
+            local new_rank_key
+            if splinter_of_verity then
+                local face_ranks = {}
+                for k, v in pairs(SMODS.Ranks) do
+                    if v.face or k == "Ace" then
+                        table.insert(face_ranks, k)
+                    end
+                end
+                new_rank_key = pseudorandom_element(face_ranks, pseudoseed('dissected_rank'))
+            else
+                local new_rank = pseudorandom_element(SMODS.Rank.obj_buffer, pseudoseed('dissected_rank'))
+                new_rank_key = tostring(new_rank)
+            end
             
-            local new_rank_id = SMODS.Ranks[new_rank].id
+            local new_rank_id = SMODS.Ranks[new_rank_key].id
             
             card:flip()
-            SMODS.change_base(card, new_suit, new_rank)
+            SMODS.change_base(card, new_suit, new_rank_key)
             card_eval_status_text(card, 'extra', nil, nil, nil, {
                 message = "Reshaped!",
                 sound = "fm_dissected",
@@ -147,15 +165,69 @@ SMODS.Enhancement {
         name = "Rooted",
         text = {
             "RESONANCE",
-            "Incrementally grants {C:blue}+20{} Chips",
-            "but decreases in rank by 1 every time it is",
-            "played",
-            "{C:inactive}(Currently {C:chips}+#1#{C:inactive} Chips)"
+            "Each turn in hand, gain {C:blue}+20{} Chips",
+            "Decrements in rank each turn in hand",
+            "Becomes Catatonic when rank reaches 2",
+            "{C:inactive}(Currently: {C:blue}+#1# {C:inactive}Chips)"
         }
     },
     atlas = 'Enhancements',
+    config = {
+        extra = {
+            chips = 0
+        }
+    },
     pos = {x=4, y=7},
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.chips } }
+    end,
     calculate = function(self, card, context)
-        
+        if context.cardarea == G.hand and context.main_scoring then
+            card.ability.extra.chips = (card.ability.extra.chips or 0) + 20
+            return {
+                chips = card.ability.extra.chips,
+                message = "Chips Up!",
+                colour = G.C.BLUE,
+                -- sound = "fm_rooted"
+            }
+        end
+        if context.cardarea == G.hand and context.after then
+            local current_rank = card.base.value
+            local num_steps = -1
+            
+            local current_index = nil
+            for idx, rank_key in ipairs(SMODS.Rank.obj_buffer) do
+                if rank_key == current_rank then
+                    current_index = idx
+                    break
+                end
+            end
+            
+            if current_index then
+                local new_index = math.max(current_index + num_steps, 1)
+                local new_rank = SMODS.Rank.obj_buffer[new_index]
+                
+                card:flip()
+                SMODS.change_base(card, card.base.suit, new_rank)
+                card:flip()
+                
+                if new_index == 1 then
+                    -- Apply Catatonic effect
+                    SMODS.calculate_effect({
+                        message = "Catatonic!",
+                        sound = "fm_witnesss_shatter",
+                        colour = G.C.BLACK
+                    }, card)
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            card:juice_up()
+                            SMODS.Stickers.fm_catatonic:apply(card, true)
+                            card:set_ability(G.P_CENTERS.c_base)
+                            return true
+                        end
+                    }))
+                end
+            end
+        end
     end
 }

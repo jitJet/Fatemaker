@@ -37,7 +37,7 @@ SMODS.Booster({
                 "m_fm_devour",
                 "m_fm_suppress"
             }
-            local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
+            local selected_enhancement = pseudorandom_element(void_enhancements, pseudoseed('void_enhancement'))
             
             card_config = {
                 set = "Enhanced", 
@@ -116,7 +116,7 @@ SMODS.Booster({
                 "m_fm_devour",
                 "m_fm_suppress",
             }
-            local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
+            local selected_enhancement = pseudorandom_element(void_enhancements, pseudoseed('void_enhancement'))
             
             card_config = {
                 set = "Enhanced", 
@@ -195,7 +195,7 @@ SMODS.Booster({
                 "m_fm_devour",
                 "m_fm_suppress"
             }
-            local selected_enhancement = void_enhancements[math.random(#void_enhancements)]
+            local selected_enhancement = pseudorandom_element(void_enhancements, pseudoseed('void_enhancement'))
             
             card_config = {
                 set = "Enhanced",

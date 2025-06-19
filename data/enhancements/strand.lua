@@ -214,12 +214,58 @@ SMODS.Enhancement {
             "{C:green}STRAND{}",
             "{C:red}Forcibly selected{} after two played hands",
             "For each {C:green}Strand{} card scored before it,",
-            "gain {C:mult}+10{} Mult each",
+            "gain {C:mult}+20{} Mult each",
+            "{C:inactive}({C:mult}#1#{C:inactive} hands left)",
+            "{C:inactive}(Currently: {C:mult}+#2#{C:inactive} Mult)"
         }
     },
     atlas = 'Enhancements',
     pos = {x=3, y=7},
+    config = {
+        extra = {
+            hands_remaining = 2,
+            strand_mult = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.hands_remaining, card.ability.extra.strand_mult } }
+    end,
     calculate = function(self, card, context)
-        
+        if context.cardarea == G.hand and context.after then
+            local strand_count = 0
+            for _, playedCard in ipairs(G.play.cards) do
+                if playedCard.config.center == G.P_CENTERS.m_fm_tangle or
+                   playedCard.config.center == G.P_CENTERS.m_fm_wovenmail or
+                   playedCard.config.center == G.P_CENTERS.m_fm_unravel or
+                   playedCard.config.center == G.P_CENTERS.m_fm_suspend then
+                    strand_count = strand_count + 1
+                end
+            end
+
+            card.ability.extra.strand_mult = card.ability.extra.strand_mult + (20 * strand_count)
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = "Mult Up!",
+                colour = G.C.GREEN
+            })
+
+            card.ability.extra.hands_remaining = card.ability.extra.hands_remaining - 1
+            if card.ability.extra.hands_remaining <= 0 then
+                G.hand:unhighlight_all()
+                card.ability.forced_selection = true
+                G.hand:add_to_highlighted(card)
+                return {
+                    message = "Forced!",
+                    -- sound = "fm_suspend",
+                    colour = G.C.GREEN
+                }
+            end
+        end
+
+        -- Scoring
+        if context.cardarea == G.play and context.main_scoring then
+            return {
+                mult = card.ability.extra.strand_mult
+            }
+        end
     end
 }

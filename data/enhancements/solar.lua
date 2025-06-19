@@ -201,13 +201,32 @@ SMODS.Enhancement {
         name = "Cure",
         text = {
             "{C:attention}SOLAR{}",
-            "Each {C:attention}Cure{} card scored in one hand",
-            "will incrementally grant {C:blue}+50{} chips"
+            "Each {C:attention}Cure{} card scored in the same hand",
+            "will incrementally grant {C:blue}+30{} chips"
         }
     },
     atlas = 'Enhancements',
     pos = {x=1, y=7},
+    config = {
+        extra = { chips = 0 }
+    },
     calculate = function(self, card, context)
-        
+        if context.cardarea == G.play and context.main_scoring then
+            local cure_count = 0
+            for _, scoringCard in ipairs(context.scoring_hand) do
+                if scoringCard.config.center_key == "m_fm_cure" then
+                    cure_count = cure_count + 1
+                end
+            end
+            if cure_count > 0 then
+                card.ability.extra.chips = card.ability.extra.chips + (30 * cure_count)
+                return {
+                    chips = card.ability.extra.chips,
+                    message = "Cured!",
+                    -- sound = "fm_cure",
+                    colour = G.C.ORANGE
+                }
+            end
+        end
     end
 }

@@ -233,36 +233,26 @@ SMODS.Enhancement {
                 }))
             end
         end
-        if context.cardarea == G.hand and context.main_scoring and card.ability.extra.hands_remaining <= 0 then
+        if context.destroy_card and context.destroy_card == card and card.ability.extra.hands_remaining <= 0 then
             local final_mult = card.ability.extra.stored_mult
-            G.E_MANAGER:add_event(Event({
-                func = function()
-                    card:start_dissolve({G.C.SUITS.Spades})
-                    return true
-                end
-            }))
             return {
                 mult = final_mult,
                 message = "Shattered!",
                 sound = "fm_shatter",
-                colour = G.C.SUITS.Spades
+                colour = G.C.SUITS.Spades,
+                remove = true
             }
         end
      
         -- Normal scoring when played
-        if context.cardarea == G.play and context.main_scoring then
+        if context.destroy_card and context.destroy_card == card and context.cardarea == G.play then
             local current_mult = card.ability.extra.stored_mult
-            G.E_MANAGER:add_event(Event({
-                func = function()
-                    card:start_dissolve({G.C.SUITS.Spades})
-                    return true
-                end
-            }))
             return {
                 mult = current_mult,
                 message = "Shattered!",
                 sound = "fm_shatter",
-                colour = G.C.SUITS.Spades
+                colour = G.C.SUITS.Spades,
+                remove = true
             }
         end
     end

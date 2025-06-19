@@ -3871,8 +3871,9 @@ SMODS.Joker{
                             trigger = 'after',
                             delay = 1.0,
                             func = function()
-                                G.play:emplace(card)
-                                table.insert(G.playing_cards, card)
+                                G.play:emplace(new_card)
+                                table.insert(G.playing_cards, new_card)
+                                draw_card(G.play, G.hand, 90, 'up', nil)
                                 return true
                             end
                         }))
@@ -3889,7 +3890,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Splinter of Verity",
         text = {
-            ""
+            "All Dissected cards will only switch",
+            "to face cards and Aces"
         }
     },
     atlas = 'Jokers',
@@ -3998,7 +4000,7 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=9, y=2},
+    pos = {x=2, y=9},
     calculate = function(self, card, context)
         if context.joker_main then
             local solarEnhancements = {
@@ -4266,10 +4268,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Ace of Spades",
         text = {
-            "Scoring Aces will build up stacks of Memento Mori.",
-            "At six stacks, every Ace scored will become Scorched.",
-            "Scoring Aces of Spades will instantly ignite when Memento Mori is active.",
-            "(Currently x/6)",
+            "Scoring {C:attention}Aces{} will build up stacks of {C:attention}Memento Mori{}",
+            "At {C:attention}6{} stacks, every {C:attention}Ace{} scored will become {C:attention}Scorched{}",
+            "Scoring {C:attention}Aces of Spades{} will instantly",
+            "{C:attention}ignite{} when {C:attention}Memento Mori{} is active",
+            "{C:inactive}(Currently {C:attention}#1#{C:inactive}/6)",
         }
     },
     atlas = 'Jokers',
@@ -4280,38 +4283,69 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=8, y=1},
+    pos = {x=1, y=9},
     config = {
         extra = {
             memento_mori = 0
         }
     },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.memento_mori or 0 } }
+    end,
     calculate = function(self, card, context)
+        -- Add stacks for each Ace scored
         if context.before then
-            for i, scoredCard in ipairs(context.scoring_hand) do
+            local gained = 0
+            for _, scoredCard in ipairs(context.scoring_hand) do
                 if scoredCard.base.value == "Ace" then
-                    card.ability.extra.memento_mori = card.ability.extra.memento_mori + 1 
+                    card.ability.extra.memento_mori = card.ability.extra.memento_mori + 1
+                    gained = gained + 1
                 end
+            end
+            if gained > 0 then
+                SMODS.calculate_effect({
+                    message = "+" .. gained .. " Memento Mori",
+                    -- sound = "fm_memento_stack",
+                    colour = G.C.RED
+                }, card)
             end
         end
 
+        -- When 6 stacks are reached, ignite all scored Aces
         if context.joker_main then
             if card.ability.extra.memento_mori >= 6 then
                 if card.ability.extra.memento_mori > 6 then
                     card.ability.extra.memento_mori = 6
                 end
-                for i, scoredCard in ipairs(context.scoring_hand) do
+                SMODS.calculate_effect({
+                    message = "Draw!",
+                    -- sound = "fm_memento_ready",
+                    colour = G.C.RED
+                }, card)
+                for _, scoredCard in ipairs(context.scoring_hand) do
                     if scoredCard.base.value == "Ace" then
                         scoredCard:flip()
                         scoredCard:set_ability(G.P_CENTERS.m_fm_scorch)
                         scoredCard:flip()
+                        SMODS.calculate_effect({
+                            message = "Scorched!",
+                            -- sound = "fm_memento_scorch",
+                            colour = G.C.ORANGE
+                        }, scoredCard)
                         if scoredCard.base.suit == "Spades" then
                             scoredCard.ability.extra.stacks = 3
+                            SMODS.calculate_effect({
+                                message = "Ignited!",
+                                -- sound = "fm_memento_ignite",
+                                colour = G.C.ORANGE
+                            }, scoredCard)
                         end
                     end
                 end
             end
         end
+
+        -- Reset stacks after effect triggers
         if context.after then
             if card.ability.extra.memento_mori >= 6 then
                 card.ability.extra.memento_mori = 0
@@ -4428,7 +4462,7 @@ SMODS.Joker{
         name = "Icefall Mantle",
         text = {
             "All Shattered cards do not become destroyed on their effect being triggered",
-            "After scoring, any Shattered cards that have $0 are Slowed. (Vi)",
+            "After scoring, any Shattered cards that have $0 are Slowed.",
         }
     },
     atlas = 'Jokers',

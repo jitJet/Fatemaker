@@ -167,7 +167,43 @@ SMODS.Enhancement {
     },
     atlas = 'Enhancements',
     pos = {x=2, y=7},
+    config = {
+        extra = {
+            stacks = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.stacks } }
+    end,
     calculate = function(self, card, context)
-        
+        if context.cardarea == G.play and context.main_scoring then
+            local suit = card.base.suit
+            local same_suit_cards = 0
+            for _, scoredCard in ipairs(context.scoring_hand) do
+                if scoredCard ~= card and scoredCard.base.suit == suit then
+                    same_suit_cards = same_suit_cards + 1
+                end
+            end
+            local stacks_to_add = 1 + same_suit_cards * 2
+            card.ability.extra.stacks = card.ability.extra.stacks + stacks_to_add
+            
+            -- Visual cue for each stack gained
+            for i = 1, stacks_to_add do
+                SMODS.calculate_effect({
+                    message = "Charged!",
+                    -- sound = "fm_bolt_charge",
+                    colour = G.C.BLUE
+                }, card)
+            end
+            
+            if card.ability.extra.stacks >= 10 then
+                return {
+                    xmult = 3.5,
+                    message = 'Unleashed!',
+                    -- sound = 'fm_bolt_charge',
+                    colour = G.C.BLUE
+                }
+            end
+        end
     end
 }

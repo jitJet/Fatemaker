@@ -37,7 +37,7 @@ SMODS.Booster({
                 "m_fm_scorch",
                 "m_fm_cure"
             }
-            local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
+            local selected_enhancement = pseudorandom_element(solar_enhancements, pseudoseed('solar_enhancement'))
             
             card_config = {
                 set = "Enhanced", 
@@ -116,7 +116,7 @@ SMODS.Booster({
                 "m_fm_scorch",
                 "m_fm_cure"
             }
-            local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
+            local selected_enhancement = pseudorandom_element(solar_enhancements, pseudoseed('solar_enhancement'))
             
             card_config = {
                 set = "Enhanced", 
@@ -195,7 +195,7 @@ SMODS.Booster({
                 "m_fm_scorch",
                 "m_fm_cure"
             }
-            local selected_enhancement = solar_enhancements[math.random(#solar_enhancements)]
+            local selected_enhancement = pseudorandom_element(solar_enhancements, pseudoseed('solar_enhancement'))
             
             card_config = {
                 set = "Enhanced", 

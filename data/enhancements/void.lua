@@ -160,13 +160,50 @@ SMODS.Enhancement {
         text = {
             "{C:purple}VOID{}",
             "{C:red}Cannot be played{}",
-            "When in hand, grants {C:mult}+10{} Mult",
+            "When in hand, gains {C:mult}+15{} Mult",
             "for every {C:purple}Void{} card scored",
+            "Resets after blind ends",
+            "{C:inactive}(Currently: {C:red}+#1#{C:inactive} Mult)"
         }
     },
     atlas = 'Enhancements',
     pos = {x=0, y=7},
+    config = {
+        extra = {
+            void_mult = 0
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.void_mult } }
+    end,
     calculate = function(self, card, context)
-        
+        if context.cardarea == G.hand and context.after then
+            local void_count = 0
+            for _, playedCard in ipairs(G.play.cards) do
+                if playedCard.config.center == G.P_CENTERS.m_fm_overshield or
+                   playedCard.config.center == G.P_CENTERS.m_fm_devour or
+                   playedCard.config.center == G.P_CENTERS.m_fm_volatile or
+                   playedCard.config.center == G.P_CENTERS.m_fm_suppress then
+                    void_count = void_count + 1
+                end
+            end
+
+            card.ability.extra.void_mult = card.ability.extra.void_mult + (15 * void_count)
+            card_eval_status_text(card, 'extra', nil, nil, nil, {
+                message = "Mult Up!",
+                colour = G.C.PURPLE
+            })
+        end
+
+        -- Scoring
+        if context.cardarea == G.hand and context.main_scoring then
+            return {
+                mult = card.ability.extra.void_mult
+            }
+        end
+
+        if context.end_of_round then
+            card.ability.extra.void_mult = 0
+        end
     end
 }

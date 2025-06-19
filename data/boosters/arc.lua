@@ -37,7 +37,7 @@ SMODS.Booster({
                 "m_fm_blinded",
                 "m_fm_bolt_charge"
             }
-            local selected_enhancement = arc_enhancements[math.random(#arc_enhancements)]
+            local selected_enhancement = pseudorandom_element(arc_enhancements, pseudoseed('arc_enhancement'))
             
             card_config = {
                 set = "Enhanced", 
@@ -116,7 +116,7 @@ SMODS.Booster({
                 "m_fm_blinded",
                 "m_fm_bolt_charge"
             }
-            local selected_enhancement = arc_enhancements[math.random(#arc_enhancements)]
+            local selected_enhancement = pseudorandom_element(arc_enhancements, pseudoseed('arc_enhancement'))
             
             card_config = {
                 set = "Enhanced", 
@@ -195,7 +195,7 @@ SMODS.Booster({
                 "m_fm_blinded",
                 "m_fm_bolt_charge"
             }
-            local selected_enhancement = arc_enhancements[math.random(#arc_enhancements)]
+            local selected_enhancement = pseudorandom_element(arc_enhancements, pseudoseed('arc_enhancement'))
             
             card_config = {
                 set = "Enhanced",
