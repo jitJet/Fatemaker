@@ -42,12 +42,12 @@ SMODS.Sound({ vol = 0.6, key = "resonate_whirlwind", path = "resonate_whirlwind.
 SMODS.Sound({ vol = 0.6, key = "transcendence", path = "transcendence.ogg" })
 
 -- Fragment Jokers
-SMODS.Sound({ vol = 0.6, key = "void_fragment", path = "void_fragment.ogg" })
-SMODS.Sound({ vol = 0.6, key = "arc_fragment", path = "arc_fragment.ogg" })
-SMODS.Sound({ vol = 0.6, key = "solar_fragment", path = "solar_fragment.ogg" })
-SMODS.Sound({ vol = 0.6, key = "stasis_fragment", path = "stasis_fragment.ogg" })
-SMODS.Sound({ vol = 0.6, key = "strand_fragment", path = "strand_fragment.ogg" })
-SMODS.Sound({ vol = 0.6, key = "resonance_fragment", path = "resonance_fragment.ogg" })
+SMODS.Sound({ vol = 1, key = "void_fragment", path = "void_fragment.ogg" })
+SMODS.Sound({ vol = 1, key = "arc_fragment", path = "arc_fragment.ogg" })
+SMODS.Sound({ vol = 1, key = "solar_fragment", path = "solar_fragment.ogg" })
+SMODS.Sound({ vol = 1, key = "stasis_fragment", path = "stasis_fragment.ogg" })
+SMODS.Sound({ vol = 1, key = "strand_fragment", path = "strand_fragment.ogg" })
+SMODS.Sound({ vol = 1, key = "resonance_fragment", path = "resonance_fragment.ogg" })
 
 -- Misc Sounds
 SMODS.Sound({ vol = 0.6, key = "super_charge", path = "super_charge.ogg" })

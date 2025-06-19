@@ -134,7 +134,8 @@ SMODS.Enhancement {
     config = {
         extra = {
             money = 0,
-            denom = 4
+            denom = 4,
+            destroy = true
         }
     },
     pos = {x=2, y=5},
@@ -158,14 +159,16 @@ SMODS.Enhancement {
             end
         end
     
-        if context.destroying_card and pseudorandom('shatter') < G.GAME.probabilities.normal / card.ability.extra.denom then
-            -- Increment global counter for shatters this hand for interactions with Whisper of Fractures
+        if context.destroying_card and context.destroy_card == card and pseudorandom('shatter') < G.GAME.probabilities.normal / card.ability.extra.denom then
             G.FM_SHATTERED_THIS_HAND = (G.FM_SHATTERED_THIS_HAND or 0) + 1
+            local amount = card.ability.extra.money
+            card.ability.extra.money = 0
             return {
-                dollars = card.ability.extra.money,
+                dollars = amount,
                 message = 'Shattered!',
                 sound = 'fm_shatter',
                 colour = G.C.SUITS.Spades,
+                remove = card.ability.extra.destroy,
             }  
         end
     end

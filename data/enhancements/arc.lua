@@ -124,8 +124,22 @@ SMODS.Enhancement {
     },
     atlas = 'Enhancements',
     pos = {x=2, y=4},
+    config = { 
+        extra = { 
+            flipped = false
+        } 
+    },
     calculate = function(self, card, context)
+        if context.hand_drawn or context.first_hand_drawn then
+            if card.ability.extra.flipped == false then
+                card.ability.extra.flipped = true
+                card:flip()
+            end
+        end
         if context.cardarea == G.play and context.main_scoring then
+            if card.ability.extra.flipped == true then
+                card.ability.extra.flipped = false
+            end
             local return_value = {
                 x_mult = 3
             }

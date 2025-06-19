@@ -34,6 +34,15 @@ SMODS.ConsumableType ({
     shop_rate = 1
 })
 
+SMODS.current_mod.optional_features = function()
+    return {
+    cardareas = {
+            discard = true,
+            deck = true
+        }
+    }
+end
+
 function table.contains(table, element)
     for _, value in pairs(table) do
         if value == element then
@@ -130,7 +139,7 @@ end
 local alias_can_play = G.FUNCS.can_play
 G.FUNCS.can_play = function(e)
     for _, card in ipairs(G.hand.highlighted) do
-        if card.ability.fm_catatonic then
+        if card.ability.fm_catatonic or card.config.center == G.P_CENTERS.m_fm_suppress then
             e.config.colour = G.C.UI.BACKGROUND_INACTIVE
             e.config.button = nil
             return

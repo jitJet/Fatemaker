@@ -145,7 +145,7 @@ SMODS.Enhancement {
             }
         end
    
-        if context.destroying_card and pseudorandom('unravel') < G.GAME.probabilities.normal / card.ability.extra.denom then
+        if context.destroying_card and cardarea == G.play and context.destroying_card == card and pseudorandom('unravel') < G.GAME.probabilities.normal / card.ability.extra.denom then
             local lowest_cards = {}
             for _, handCard in ipairs(G.hand.cards) do
                 table.insert(lowest_cards, handCard)
@@ -199,7 +199,8 @@ SMODS.Enhancement {
             return {
                 message = 'Unraveled!',
                 sound = 'fm_unravel',
-                colour = G.C.GREEN
+                colour = G.C.GREEN,
+                remove = true
             }
         end
     end

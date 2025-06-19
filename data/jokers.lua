@@ -1117,7 +1117,7 @@ SMODS.Joker{
                 if scoringCard.config.center == G.P_CENTERS.m_fm_tangle or
                    scoringCard.config.center == G.P_CENTERS.m_fm_wovenmail or
                    scoringCard.config.center == G.P_CENTERS.m_fm_unravel or
-                   scoringCard.config.center == G.P_CENTERS.m_fm_suspend or then
+                   scoringCard.config.center == G.P_CENTERS.m_fm_suspend then
                     strand_count = strand_count + 1
                 end
             end
@@ -1248,7 +1248,7 @@ SMODS.Joker{
                 end
             end
 
-            if card.ability.extra.state == "ready" and (next(context.poker_hands["Pair"]) or next(context.poker_hands["High Card"])) then
+            if card.ability.extra.state == "ready" and (context.scoring_name == "Pair" or context.scoring_name == "High Card") then
                 G.E_MANAGER:add_event(Event({
                     func = function()
                         for _, playCard in ipairs(context.scoring_hand) do
@@ -1296,49 +1296,57 @@ SMODS.Sticker {
         text = {
             "Cannot be played or discarded",
             "For each hand played, this card",
-            "gains {C:mult}+10{} Mult",
+            "gains {C:mult}+#2#{} Mult",
             "Disappears after the round ends",
             "{C:inactive}(Currently: {C:mult}+#1#{C:inactive} Mult)"
         }
     },
     default_compat = true,
-    sets = {
-        Joker = false
-    },
+    sets = { Joker = false },
     atlas = "Stickers",
     pos = {x = 2, y = 0},
-    config = {
-        extra = {
-            accumulated_mult = 10
-        }
-    },
+    config = {}, -- No shared state!
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.catatonic_mult or self.config.extra.accumulated_mult } }
+        return {
+            vars = {
+                card.catatonic_accumulated_mult or 10,
+                card.catatonic_mult_increment or 10
+            }
+        }
     end,
     calculate = function(self, card, context)
-        if not card.catatonic_mult then
-            card.catatonic_mult = self.config.extra.accumulated_mult
+        -- Initialize per-card values if not present
+        if card.catatonic_accumulated_mult == nil then card.catatonic_accumulated_mult = 10 end
+        if card.catatonic_mult_increment == nil then card.catatonic_mult_increment = 10 end
+
+        -- Check for Splinter of Corruption Joker
+        local increment = 10
+        for _, joker in ipairs(G.jokers.cards) do
+            if joker.config and joker.config.center_key == "j_fm_splinter_of_corruption" then
+                increment = 20
+                break
+            end
         end
-        
+        card.catatonic_mult_increment = increment
+
         if card.area == G.hand and context.after then
-            card.catatonic_mult = card.catatonic_mult + 10
+            card.catatonic_accumulated_mult = card.catatonic_accumulated_mult + card.catatonic_mult_increment
             return {
                 message = "Mult Up!",
                 colour = G.C.MULT
             }
         end
-        
         if card.area == G.hand and context.main_scoring then
             return {
-                mult = card.catatonic_mult
+                mult = card.catatonic_accumulated_mult
             }
         end
-        
         if context.end_of_round then
             card:flip()
             SMODS.Stickers.fm_catatonic:apply(card, false)
             card:flip()
-            card.catatonic_mult = nil
+            card.catatonic_accumulated_mult = nil
+            card.catatonic_mult_increment = nil
         end
     end
 }
@@ -1351,8 +1359,8 @@ SMODS.Joker{
             "Charge with 5 {C:black}Resonance{} cards.",
             "When charged, {C:attention}#1#{} random cards",
             "become {C:black}Catatonic{}, making them {C:mult}unplayable{}",
-            "and {C:mult}undiscardable{}, but gaining",
-            "{C:mult}+10{} Mult per hand played",
+            "and {C:mult}undiscardable{}, but grants incremental {C:red}Mult{}",
+            "per hand played",
             "until the round ends.",
             "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
         }
@@ -3439,6 +3447,189 @@ SMODS.Joker{
 }
 
 SMODS.Joker{
+    key = "thread_of_fury",
+    loc_txt = {
+        name = "Thread of Fury",
+        text = {
+            "Add half of every scored", 
+            "{C:green}Strand{} card's Chips as Mult",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=0, y=7},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local Mult = 0
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_wovenmail") or 
+                SMODS.has_enhancement(scoredCard, "m_fm_tangle") or 
+                SMODS.has_enhancement(scoredCard, "m_fm_unravel") or
+                SMODS.has_enhancement(scoredCard, "m_fm_suspend") then
+                    Mult = Mult + ((scoredCard:get_chip_bonus())/2)
+                end
+            end
+            return {
+                mult = Mult
+            }
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "thread_of_transmutation",
+    loc_txt = {
+        name = "Thread of Transmutation",
+        text = {
+            "Upon scoring a card with {C:green}Woven Mail{},",
+            "grant an unenhanced card in hand {C:green}Tangle{}",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=7},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local unenhancedCards = {}
+            for i, handCard in ipairs(G.hand.cards) do
+                if handCard.ability.set ~= "Enhanced" then
+                    table.insert(unenhancedCards, handCard)
+                end
+            end
+            if unenhancedCards then
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if SMODS.has_enhancement(scoredCard, "m_fm_wovenmail") then
+                        local selectedCard = pseudorandom_element(unenhancedCards, pseudoseed('Balalalala'))
+                        selectedCard:flip()
+                        selectedCard:set_ability(G.P_CENTERS.m_fm_tangle)
+                        selectedCard:flip()
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "thread_of_warding",
+    loc_txt = {
+        name = "Thread of Warding",
+        text = {
+            "Upon fully charging a {C:green}Strand Super{}",
+            "grant a random card in hand {C:green}Woven Mail{}",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=7},
+    calculate = function(self, card, context)
+        for _, joker in ipairs(G.jokers.cards) do
+            if joker.config.center_key == "j_fm_bladefury" or joker.config.center_key == "j_fm_needlestorm" then
+                -- Track last_state for each super
+                joker.ability.extra.last_state = joker.ability.extra.last_state or joker.ability.extra.state
+
+                -- If just transitioned to "ready", trigger the effect
+                if joker.ability.extra.state == "ready" and joker.ability.extra.last_state ~= "ready" then
+                    -- Find all unenhanced cards in hand
+                    local unenhanced = {}
+                    for _, handCard in ipairs(G.hand.cards) do
+                        if handCard.ability.set ~= "Enhanced" then
+                            table.insert(unenhanced, handCard)
+                        end
+                    end
+
+                    if #unenhanced > 0 then
+                        local target = unenhanced[math.random(#unenhanced)]
+                        SMODS.calculate_effect({
+                            message = "Warded!",
+                            sound = "fm_strand_fragment",
+                            colour = G.C.GREEN
+                        }, target)
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                target:flip()
+                                target:set_ability(G.P_CENTERS.m_fm_wovenmail)
+                                target:flip()
+                                return true
+                            end
+                        }))
+                    end
+                end
+
+                -- Update last_state for next check
+                joker.ability.extra.last_state = joker.ability.extra.state
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "thread_of_rebirth",
+    loc_txt = {
+        name = "Thread of Rebirth",
+        text = {
+            "Every {C:green}Strand{} card played has a {C:green}#1# in #2#{} chance of",
+            "creating an {C:attention}unenhanced copy{} of it",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=3, y=7},
+    config = {
+        extra = {
+            denom = 5
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { G.GAME.probabilities.normal, card.ability.extra.denom or 5 } }
+    end,
+    calculate = function(self, card, context)
+        if context.after then
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_tangle") or
+                   SMODS.has_enhancement(scoredCard, "m_fm_wovenmail") or
+                   SMODS.has_enhancement(scoredCard, "m_fm_unravel") or
+                   SMODS.has_enhancement(scoredCard, "m_fm_suspend") then
+                    if pseudorandom('rebirth') < (G.GAME.probabilities.normal / (card.ability.extra.denom or 5)) then
+                        local new_card = copy_card(scoredCard, nil, nil, G.playing_card)
+                        new_card:set_ability(G.P_CENTERS.c_base)
+                        new_card.T.y = scoredCard.T.y - G.CARD_H
+                        table.insert(G.playing_cards, new_card)
+                        G.deck.config.card_limit = G.deck.config.card_limit + 1
+                        draw_card(G.play, G.hand, 90, 'up', nil, new_card)
+                        new_card:start_materialize()
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
     key = "thread_of_evolution",
     loc_txt = {
         name = "Thread of Evolution",
@@ -3465,6 +3656,814 @@ SMODS.Joker{
         for i = #G.deck.cards, 1, -1 do
             if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_unravel then
                 G.deck.cards[i].ability.extra.threads_per_hand = 2
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "thread_of_finality",
+    loc_txt = {
+        name = "Thread of Finality",
+        text = {
+            "Create a random {C:green}Strand{} card",
+            "when you have two or less hands remaining",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=5, y=7},
+    calculate = function(self, card, context)
+        if context.before then
+            if G.GAME.current_round.hands_left < 3 then
+                -- List of all possible Strand enhancements
+                local strand_enhancements = {
+                    G.P_CENTERS.m_fm_tangle,
+                    G.P_CENTERS.m_fm_wovenmail,
+                    G.P_CENTERS.m_fm_unravel,
+                    G.P_CENTERS.m_fm_suspend
+                }
+                -- Pick a random enhancement
+                local enhancement = strand_enhancements[math.random(#strand_enhancements)]
+                -- Create a new base card (e.g., random suit/rank)
+                local suit = pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('strand_suit'))
+                local rank = pseudorandom_element(SMODS.Rank.obj_buffer, pseudoseed('strand_rank'))
+                local new_card = Card(G.hand.T.x, G.hand.T.y - 5, G.CARD_W, G.CARD_H, {suit=suit, value=rank}, enhancement)
+                new_card:start_materialize({G.C.SECONDARY_SET.Enhanced})
+                draw_card(G.play, G.hand, 90, 'up', nil, new_card)
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "splinter_of_subjugation",
+    loc_txt = {
+        name = "Splinter of Subjugation",
+        text = {
+            "{C:red}Discard{} the same hand you have previously played", 
+            "to grant super charges to a random Resonance Super", 
+            "depending on the number of cards discarded",
+            "{C:inactive}(Last hand played: {C:attention}#1#{C:inactive})"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=0, y=8},
+    config = {
+        extra = {
+            last_played_hand = nil
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { card.ability.extra.last_played_hand or "None" } }
+    end,
+    calculate = function(self, card, context)
+        -- Track last played hand type after scoring
+        if context.final_scoring_step then
+            card.ability.extra.last_played_hand = context.scoring_name
+        end
+
+        -- On discard, check if hand matches last played hand type
+        if context.pre_discard and card.ability.extra.last_played_hand then
+            -- Determine the hand type of the cards being discarded
+            local text, disp_text = G.FUNCS.get_poker_hand_info(G.hand.highlighted)
+            local discard_hand_type = text
+
+            if discard_hand_type == card.ability.extra.last_played_hand then
+                -- Find all Resonance Super Jokers
+                local resonance_supers = {}
+                for _, joker in ipairs(G.jokers.cards) do
+                    if joker.config.center_key == "j_fm_witnesss_shatter" or joker.config.center_key == "j_fm_resonate_whirlwind" then
+                        table.insert(resonance_supers, joker)
+                    end
+                end
+                if #resonance_supers > 0 then
+                    local target_joker = resonance_supers[math.random(#resonance_supers)]
+                    local num_discarded = #G.hand.highlighted
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            target_joker.ability.extra.charge = math.min(5, (target_joker.ability.extra.charge or 0) + num_discarded)
+                            SMODS.calculate_effect({
+                                message = "+" .. num_discarded .. " Charge!",
+                                sound = "fm_super_charge",
+                                colour = G.C.BLACK
+                            }, target_joker)
+                            if target_joker.ability.extra.charge >= 5 then
+                                target_joker.ability.extra.state = "ready"
+                                juice_card_until(target_joker, function() return target_joker.ability.extra.state == "ready" end, true)
+                            end
+                            return true
+                        end
+                    }))
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "splinter_of_convergence",
+    loc_txt = {
+        name = "Splinter of Convergence",
+        text = {
+            "Scoring a hand consisting entirely of Resonance cards",
+            "will {C:attention}merge{} them all into a single card with a random Resonance enhancement",
+            "and a new rank totalling the cards' original ranks",
+            "({C:red}High Cards{} are not included)"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=1, y=8},
+    calculate = function(self, card, context)
+        if context.after and context.scoring_hand and context.scoring_name ~= "High Card" then
+            -- List of all possible Resonance enhancements
+            local resonance_keys = {
+                "m_fm_resonant",
+                "m_fm_finalized",
+                "m_fm_dissected",
+                "m_fm_rooted"
+            }
+            local resonance_centers = {}
+            for _, k in ipairs(resonance_keys) do
+                if G.P_CENTERS[k] then table.insert(resonance_centers, G.P_CENTERS[k]) end
+            end
+
+            -- Check if all cards in scoring_hand are Resonance cards
+            local all_resonance = true
+            local total_rank = 0
+            for _, scoredCard in ipairs(context.scoring_hand) do
+                local is_resonance = false
+                for _, center in ipairs(resonance_centers) do
+                    if scoredCard.config and scoredCard.config.center == center then
+                        is_resonance = true
+                        break
+                    end
+                end
+                if not is_resonance then
+                    all_resonance = false
+                    break
+                end
+                total_rank = total_rank + (scoredCard.base and scoredCard.base.nominal or scoredCard:get_id())
+            end
+
+            if all_resonance and #context.scoring_hand > 1 then
+                -- Clamp total_rank to max rank
+                local max_rank = SMODS.Rank.obj_buffer[#SMODS.Rank.obj_buffer]
+                if total_rank > SMODS.Ranks[max_rank].nominal then
+                    total_rank = SMODS.Ranks[max_rank].nominal
+                end
+
+                -- Find the closest rank key for the total
+                local new_rank_key = SMODS.Rank.obj_buffer[1]
+                for _, k in ipairs(SMODS.Rank.obj_buffer) do
+                    if SMODS.Ranks[k].nominal <= total_rank then
+                        new_rank_key = k
+                    else
+                        break
+                    end
+                end
+
+                -- Pick a random Resonance enhancement
+                local enhancement = resonance_centers[math.random(#resonance_centers)]
+                -- Use the suit of the first card, or random if you prefer
+                local suit = context.scoring_hand[1].base and context.scoring_hand[1].base.suit or SMODS.Suit.obj_buffer[math.random(#SMODS.Suit.obj_buffer)]
+
+                -- Schedule the dissolve and spawn after scoring is fully resolved
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.3,
+                    func = function()
+                        -- Dissolve all scored cards, find a way to handle card destruction properly
+                        for _, scoredCard in ipairs(context.scoring_hand) do
+                            scoredCard:start_dissolve()
+                        end
+
+                        local new_card = Card(G.hand.T.x, G.hand.T.y, G.CARD_W, G.CARD_H, {suit=suit, value=new_rank_key}, enhancement)
+                        new_card.T.y = 6 - G.CARD_H
+                        SMODS.change_base(new_card, suit, new_rank_key)
+                        new_card:start_materialize({G.C.SECONDARY_SET.Enhanced})
+                        SMODS.calculate_effect({
+                            message = "Converged!",
+                            sound = "fm_resonance_fragment",
+                            colour = G.C.BLACK
+                        }, new_card)
+                        G.E_MANAGER:add_event(Event({
+                            trigger = 'after',
+                            delay = 1.0,
+                            func = function()
+                                G.play:emplace(card)
+                                table.insert(G.playing_cards, card)
+                                return true
+                            end
+                        }))
+                        return true
+                    end
+                }))
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "splinter_of_verity",
+    loc_txt = {
+        name = "Splinter of Verity",
+        text = {
+            ""
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=2, y=8},
+    calculate = function(self, card, context)
+
+    end
+}
+
+SMODS.Joker{
+    key = "splinter_of_dread",
+    loc_txt = {
+        name = "Splinter of Dread",
+        text = {
+            ""
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=3, y=8},
+    calculate = function(self, card, context)
+
+    end
+}
+
+SMODS.Joker{
+    key = "splinter_of_corruption",
+    loc_txt = {
+        name = "Splinter of Corruption",
+        text = {
+            "Catatonic cards scale up faster by increments of {C:red}+20{} Mult",
+            "{C:red}-1{} hand size"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=8},
+    add_to_deck = function(self, card, from_debuff)
+        G.hand:change_size(-1)
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        G.hand:change_size(1)
+    end
+}
+
+SMODS.Joker{
+    key = "splinter_of_dissent",
+    loc_txt = {
+        name = "Splinter of Dissent",
+        text = {
+            "Scoring 3 Finalized cards in a single hand",
+            "will cause the highest ranked one to be",
+            "split into 3 unenhanced cards of smaller but equal ranks"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=5, y=8},
+    calculate = function(self, card, context)
+
+    end
+}
+
+-- EXOTIC JOKERS
+
+SMODS.Joker{
+    key = "microcosm",
+    loc_txt = {
+        name = "Microcosm",
+        text = {
+            "Every time you play 3 or more cards, draw a card and give it polychrome",
+            "If a played hand only has scoring cards of one Subclass, give the",
+            "highest and lowest cards in hand a random buff from said Subclass"
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=9, y=2},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local solarEnhancements = {
+                G.P_CENTERS.m_fm_radiant,-- Solar
+                G.P_CENTERS.m_fm_scorch,
+                G.P_CENTERS.m_fm_restoration,
+                G.P_CENTERS.m_fm_cure
+            }
+            local voidEnhancements = {
+                G.P_CENTERS.m_fm_overshield, -- Void
+                G.P_CENTERS.m_fm_volatile,
+                G.P_CENTERS.m_fm_devour,
+                G.P_CENTERS.m_fm_suppress
+            }
+            local arcEnhancements = {
+                G.P_CENTERS.m_fm_amplified, -- Arc
+                G.P_CENTERS.m_fm_jolt,
+                G.P_CENTERS.m_fm_blinded,
+                G.P_CENTERS.m_fm_bolt_charge
+            }
+            local stasisEnhancements = {
+                G.P_CENTERS.m_fm_shatter, -- Stasis
+                G.P_CENTERS.m_fm_freeze,
+                G.P_CENTERS.m_fm_slow,
+                G.P_CENTERS.m_fm_stasis_crystal
+            }
+            local strandEnhancements = {
+                G.P_CENTERS.m_fm_wovenmail, -- Strand
+                G.P_CENTERS.m_fm_tangle,
+                G.P_CENTERS.m_fm_unravel,
+                G.P_CENTERS.m_fm_suspend
+            }
+            local resonantEnhancements = {
+                G.P_CENTERS.m_fm_resonant, -- Resonant
+                G.P_CENTERS.m_fm_finalized,
+                G.P_CENTERS.m_fm_dissected,
+                G.P_CENTERS.m_fm_rooted
+            }
+            local Voidd = 0
+            local Solarr = 0
+            local Arcc = 0
+            local Stasiss = 0
+            local Strandd = 0
+            local Resonancee = 0
+
+            for _, scored_card in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scored_card, "m_fm_overshield") or SMODS.has_enhancement(scored_card, "m_fm_devour") or SMODS.has_enhancement(scored_card, "m_fm_volatile") or SMODS.has_enhancement(scored_card, "m_fm_suppress") then
+                    Voidd = Voidd + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_radiant") or SMODS.has_enhancement(scored_card, "m_fm_restoration") or SMODS.has_enhancement(scored_card, "m_fm_scorch") or SMODS.has_enhancement(scored_card, "m_fm_cure") then
+                    Solarr = Solarr + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_blinded") or SMODS.has_enhancement(scored_card, "m_fm_jolt") or SMODS.has_enhancement(scored_card, "m_fm_amplified") or SMODS.has_enhancement(scored_card, "m_fm_bolt_charge") then
+                    Arcc = Arcc + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_slow") or SMODS.has_enhancement(scored_card, "m_fm_freeze") or SMODS.has_enhancement(scored_card, "m_fm_shatter") or SMODS.has_enhancement(scored_card, "m_fm_stasis_crystal") then
+                    Stasiss = Stasiss + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_wovenmail") or SMODS.has_enhancement(scored_card, "m_fm_tangle") or SMODS.has_enhancement(scored_card, "m_fm_unravel") or SMODS.has_enhancement(scored_card, "m_fm_suspend") then
+                    Strandd = Strandd + 1
+                elseif SMODS.has_enhancement(scored_card, "m_fm_resonant") or SMODS.has_enhancement(scored_card, "m_fm_finalized") or SMODS.has_enhancement(scored_card, "m_fm_dissected") or SMODS.has_enhancement(scored_card, "m_fm_rooted") then
+                    Resonancee = Resonancee + 1
+                end
+            end
+
+            if Voidd == #context.scoring_hand then
+                G.hand.cards[1]:flip()
+                G.hand.cards[1]:set_ability(pseudorandom_element(voidEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[1]:flip()
+                G.hand.cards[#G.hand.cards]:flip()
+                G.hand.cards[#G.hand.cards]:set_ability(pseudorandom_element(voidEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[#G.hand.cards]:flip()
+            elseif Solarr == #context.scoring_hand then
+                G.hand.cards[1]:flip()
+                G.hand.cards[1]:set_ability(pseudorandom_element(solarEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[1]:flip()
+                G.hand.cards[#G.hand.cards]:flip()
+                G.hand.cards[#G.hand.cards]:set_ability(pseudorandom_element(solarEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[#G.hand.cards]:flip()
+            elseif Arcc == #context.scoring_hand then
+                G.hand.cards[1]:flip()
+                G.hand.cards[1]:set_ability(pseudorandom_element(arcEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[1]:flip()
+                G.hand.cards[#G.hand.cards]:flip()
+                G.hand.cards[#G.hand.cards]:set_ability(pseudorandom_element(arcEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[#G.hand.cards]:flip()
+            elseif Stasiss == #context.scoring_hand then
+                G.hand.cards[1]:flip()
+                G.hand.cards[1]:set_ability(pseudorandom_element(stasisEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[1]:flip()
+                G.hand.cards[#G.hand.cards]:flip()
+                G.hand.cards[#G.hand.cards]:set_ability(pseudorandom_element(stasisEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[#G.hand.cards]:flip()
+            elseif Strandd == #context.scoring_hand then
+                G.hand.cards[1]:flip()
+                G.hand.cards[1]:set_ability(pseudorandom_element(strandEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[1]:flip()
+                G.hand.cards[#G.hand.cards]:flip()
+                G.hand.cards[#G.hand.cards]:set_ability(pseudorandom_element(strandEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[#G.hand.cards]:flip()
+            elseif Resonancee == #context.scoring_hand then
+                G.hand.cards[1]:flip()
+                G.hand.cards[1]:set_ability(pseudorandom_element(resonantEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[1]:flip()
+                G.hand.cards[#G.hand.cards]:flip()
+                G.hand.cards[#G.hand.cards]:set_ability(pseudorandom_element(resonantEnhancements, pseudoseed('Break Through')))
+                G.hand.cards[#G.hand.cards]:flip()
+            end
+
+
+            if #context.scoring_hand >= 3 then
+                local _cards = {}
+                for _, playing_card in ipairs(G.playing_cards) do
+                    _cards[#_cards + 1] = playing_card
+                end
+                local selected_card = pseudorandom_element(_cards, pseudoseed('Balalalala'))
+
+                draw_card(G.deck, G.hand, 90, 'up', nil, selected_card)
+
+                selected_card:flip()
+                selected_card:set_edition("e_polychrome")
+                selected_card:flip()
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "graviton_lance", -- you keep forgetting "remove = true" on cards that are supposed to destroy themselves. You also forgot "context.destroying_card == card" and "context.cardarea == G.play" on the preceding if statement.
+    loc_txt = {
+        name = "Graviton Lance",
+        text = {
+            "Every even numbered hand has base chips and mult doubled",
+            "Volatile cards retrigger but the retrigger halves the Mult bonus",
+            "each Volatile card in hand gains the amount that was removed.",
+            "(First ability is calculated based on the number of hands before hitting play)",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=3, y=2},
+    calculate = function(self, card, context)
+        if context.modify_hand then
+            if ((G.GAME.current_round.hands_left + 1) % 2)  == 0 then
+                mult = mult*2
+                hand_chips = hand_chips*2
+                update_hand_text({ sound = 'chips2', modded = true }, { chips = hand_chips, mult = mult })
+            end
+        end
+        if context.repetition and not context.repetition_only and not context.end_of_round and context.cardarea == G.play and SMODS.has_enhancement(context.other_card, "m_fm_volatile") then
+            context.other_card.ability.extra.mult = context.other_card.ability.extra.mult/2
+            for i, handCard in ipairs (G.hand.cards) do
+                if SMODS.has_enhancement(handCard, "m_fm_volatile") then
+                    handCard:flip()
+                    handCard.ability.extra.mult = handCard.ability.extra.mult + (context.other_card.ability.extra.mult / 2)
+                    handCard:flip()
+                end
+            end
+            return {
+                card = context.other_card,
+                repetitions = 1,
+            }
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "sunshot",
+    loc_txt = {
+        name = "Sunshot",
+        text = {
+            "After scoring, grant the first",
+            "card scored one stack of Scorch",
+            "If the played hand only contains solar buffed",
+            "cards, ignite any scored scorched cards.",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=4, y=2},
+    calculate = function(self, card, context)
+        local Solarr = 0
+
+        if context.joker_main then
+            for i, scored_card in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scored_card, "m_fm_radiant") or SMODS.has_enhancement(scored_card, "m_fm_restoration") or SMODS.has_enhancement(scored_card, "m_fm_scorch") or SMODS.has_enhancement(scored_card, "m_fm_cure") then
+                    Solarr = Solarr + 1
+                end
+            end
+            if Solarr == #context.scoring_hand then
+                for i, scored_card in ipairs(context.scoring_hand) do
+                    if SMODS.has_enhancement(scored_card, "m_fm_scorch") then
+                        scored_card.ability.extra.stacks = 3
+                    end
+                end
+            end
+        end
+
+        if context.after then
+            if not SMODS.has_enhancement(G.play.cards[1], "m_fm_scorch") then
+                G.play.cards[1]:flip()
+                G.play.cards[1]:set_ability(G.P_CENTERS.m_fm_scorch)
+                G.play.cards[1]:flip()
+            else
+                G.play.cards[1].ability.extra.stacks = G.play.cards[1].ability.extra.stacks + 1
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "wicked_implement",
+    loc_txt = {
+        name = "Wicked Implement",
+        text = {
+            "Every unenhanced card scored is slowed,",
+            "and every slowed card scored is frozen",
+            "When a Frozen card is played, retrigger it twice and shatter it.",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=6, y=2},
+    calculate = function(self, card, context)
+        if context.joker_main then
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_slow") then
+                    scoredCard:flip()
+                    scoredCard:set_ability(G.P_CENTERS.m_fm_freeze)
+                    scoredCard:flip()
+                elseif scoredCard.ability.set ~= "Enhanced" then
+                    scoredCard:flip()
+                    scoredCard:set_ability(G.P_CENTERS.m_fm_slow)
+                    scoredCard:flip()
+                end
+            end
+        end
+        if context.repetition and not context.repetition_only and not context.end_of_round and context.cardarea == G.play and SMODS.has_enhancement(context.other_card, "m_fm_freeze") then
+            context.other_card:flip()
+            context.other_card:set_ability(G.P_CENTERS.m_fm_shatter)
+            context.other_card:flip()
+            return {
+                repetitions = 2,
+            }
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "ace_of_spades",
+    loc_txt = {
+        name = "Ace of Spades",
+        text = {
+            "Scoring Aces will build up stacks of Memento Mori.",
+            "At six stacks, every Ace scored will become Scorched.",
+            "Scoring Aces of Spades will instantly ignite when Memento Mori is active.",
+            "(Currently x/6)",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=8, y=1},
+    config = {
+        extra = {
+            memento_mori = 0
+        }
+    },
+    calculate = function(self, card, context)
+        if context.before then
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if scoredCard.base.value == "Ace" then
+                    card.ability.extra.memento_mori = card.ability.extra.memento_mori + 1 
+                end
+            end
+        end
+
+        if context.joker_main then
+            if card.ability.extra.memento_mori >= 6 then
+                if card.ability.extra.memento_mori > 6 then
+                    card.ability.extra.memento_mori = 6
+                end
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if scoredCard.base.value == "Ace" then
+                        scoredCard:flip()
+                        scoredCard:set_ability(G.P_CENTERS.m_fm_scorch)
+                        scoredCard:flip()
+                        if scoredCard.base.suit == "Spades" then
+                            scoredCard.ability.extra.stacks = 3
+                        end
+                    end
+                end
+            end
+        end
+        if context.after then
+            if card.ability.extra.memento_mori >= 6 then
+                card.ability.extra.memento_mori = 0
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "finalitys_auger",
+    loc_txt = {
+        name = "Finality's Auger",
+        text = {
+            "If all cards in hand are Resonance buffed,",
+            "grant all Scoring cards Resonant and",
+            "Dissect all debuffed cards in hand",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=8, y=1},
+    calculate = function(self, card, context)
+        local buffedHand = 0
+        if context.joker_main then
+            for i, handCard in ipairs(G.hand.cards) do
+                if SMODS.has_enhancement(handCard, "m_fm_resonant") or SMODS.has_enhancement(handCard, "m_fm_finalized") or SMODS.has_enhancement(handCard, "m_fm_dissected") or SMODS.has_enhancement(handCard, "m_fm_rooted") then
+                    buffedHand = buffedHand + 1
+                end
+            end
+            if buffedHand == #G.hand.cards then
+                buffedHand = 0
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    scoredCard:flip()
+                    scoredCard:set_ability(G.P_CENTERS.m_fm_resonant)
+                    scoredCard:flip()
+                end
+                for i, handCard in ipairs(G.hand.cards) do
+                    if handCard.debuff then
+                        handCard:flip()
+                        handCard:set_ability(G.P_CENTERS.m_fm_dissected)
+                        handCard:flip()
+                    end
+                end
+            end
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "hard_liquor",
+    loc_txt = {
+        name = "Hard Light",
+        text = {
+            "For every hand played, this Joker will cycle through Void, Solar and Arc.",
+            "Scoring respective elemental enhancements will grant +$5 for each scoring card.",
+            "(Currently: x)",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=8, y=1},
+    config = {
+        extra = {
+            type = "Void"
+        }
+    },
+    calculate = function(self, card, context)
+        if context.joker_main then
+            local amount = 0
+            if card.ability.extra.type == "Void" then
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if SMODS.has_enhancement(scoredCard, "m_fm_overshield") or SMODS.has_enhancement(scoredCard, "m_fm_devour") or SMODS.has_enhancement(scoredCard, "m_fm_volatile") or SMODS.has_enhancement(scoredCard, "m_fm_suppress") then
+                        amount = amount + 1
+                    end
+                end
+                card.ability.extra.type = "Solar"
+            elseif card.ability.extra.type == "Solar" then
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if SMODS.has_enhancement(scoredCard, "m_fm_radiant") or SMODS.has_enhancement(scoredCard, "m_fm_restoration") or SMODS.has_enhancement(scoredCard, "m_fm_scorch") or SMODS.has_enhancement(scoredCard, "m_fm_cure") then
+                        amount = amount + 1
+                    end
+                end
+                card.ability.extra.type = "Arc"
+            elseif card.ability.extra.type == "Arc" then
+                for i, scoredCard in ipairs(context.scoring_hand) do
+                    if SMODS.has_enhancement(scoredCard, "m_fm_blinded") or SMODS.has_enhancement(scoredCard, "m_fm_jolt") or SMODS.has_enhancement(scoredCard, "m_fm_amplified") or SMODS.has_enhancement(scoredCard, "m_fm_bolt_charge") then
+                        amount = amount + 1
+                    end
+                end
+                card.ability.extra.type = "Void"
+            end
+            return {
+                dollars = 5 * amount,
+            }
+        end
+    end
+}
+
+SMODS.Joker{
+    key = "icefall_mantle",
+    loc_txt = {
+        name = "Icefall Mantle",
+        text = {
+            "All Shattered cards do not become destroyed on their effect being triggered",
+            "After scoring, any Shattered cards that have $0 are Slowed. (Vi)",
+        }
+    },
+    atlas = 'Jokers',
+    rarity = 2,
+    cost = 4,
+    blueprint_compat = false,
+    eternal_compat = true,
+    perishable_compat = true,
+    unlocked = true,
+    discovered = true,
+    pos = {x=6, y=1},
+    calculate = function(self, card, context)
+        if context.before then 
+            for i, deckCard in ipairs(G.playing_cards) do
+                if SMODS.has_enhancement(deckCard, "m_fm_shatter") then
+                    deckCard.ability.extra.destroy = false
+                end
+            end
+        end
+        if context.after then
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_shatter") then
+                    if scoredCard.ability.extra.money == 0 then
+                        scoredCard:flip()
+                        scoredCard:set_ability(G.P_CENTERS.m_fm_slow)
+                        scoredCard:flip()
+                    end
+                end
+            end
+        end
+        if context.selling_self or context.end_of_round then
+            for i, deckCard in ipairs(G.playing_cards) do
+                if SMODS.has_enhancement(deckCard, "m_fm_shatter") then
+                    deckCard.ability.extra.destroy = true
+                end
             end
         end
     end

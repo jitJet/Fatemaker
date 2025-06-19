@@ -69,8 +69,7 @@ SMODS.Enhancement {
     atlas = 'Enhancements',
     config = {
         extra = {
-            stacks = 0,
-            x_mult = 1
+            stacks = 0
         }
     },
     pos = {x=1, y=3},
@@ -86,12 +85,13 @@ SMODS.Enhancement {
                 sound = 'fm_scorch'
             }
         end
-        if context.destroying_card and card.ability.extra.stacks >= 3 then
+        if context.destroy_card and context.destroy_card == card and card.ability.extra.stacks >= 3 then
             return {
-                x_mult = 3,
+                xmult = 3,
                 message = 'Ignited!',
                 sound = 'fm_ignition',
-                colour = G.C.ORANGE
+                colour = G.C.ORANGE,
+                remove = true
             }
         end
     end
