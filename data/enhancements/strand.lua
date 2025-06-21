@@ -133,11 +133,11 @@ SMODS.Enhancement {
         }
     },
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.threads, G.GAME.probabilities.normal, card.ability.extra.denom, card.ability.extra.threads_per_hand or 1 } }
+        return { vars = { card.ability.extra.threads, G.GAME.probabilities.normal, card.ability.extra.denom, card.ability.extra.threads_per_hand } }
     end,
     calculate = function(self, card, context)
         if context.cardarea == G.play and context.main_scoring then
-            card.ability.extra.threads = card.ability.extra.threads + (card.ability.extra.threads_per_hand or 1)
+            card.ability.extra.threads = card.ability.extra.threads + (card.ability.extra.threads_per_hand)
             return {
                 message = 'Threaded!',
                 sound = 'fm_threaded',

@@ -103,7 +103,7 @@ SMODS.Enhancement {
             "{C:purple}VOID{}",
             "When discarded with other cards,",
             "gain {C:mult}additional Mult{} equal to",
-            "their combined ranks.",
+            "their combined ranks",
             "When scored, this card",
             "is {C:attention}destroyed{}",
             "{C:inactive}(Currently {C:mult}+#1#{C:inactive} Mult)"

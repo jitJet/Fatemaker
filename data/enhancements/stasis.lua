@@ -6,7 +6,7 @@ SMODS.Enhancement {
         text = {
             "{C:spades}STASIS{}",
             "Has a {C:green}#1# in #2#{} chance of returning",
-            "to hand after being played.",
+            "to hand after being played",
             "Will {C:spades}Freeze{} when played",
             "with adjacent {C:spades}Slow{} cards"
         }
@@ -71,7 +71,7 @@ SMODS.Enhancement {
         name = "Freeze",
         text = {
             "{C:spades}STASIS{}",
-            "Returns to hand up to {C:attention}#2#{} times.",
+            "Returns to hand up to {C:attention}#2#{} times",
             "Cards of the same suit to the left",
             "become {C:spades}Slowed{}",
             "{C:inactive}(Currently {C:attention}#1#{C:inactive}/#2# returns)"
@@ -86,13 +86,23 @@ SMODS.Enhancement {
     },
     set_ability = function(self, card, initial)
         card.ability.extra.times_returned = 0
-        card.ability.max_returns = card.ability.extra.max_returns or 2
+        card.ability.max_returns = card.ability.extra.max_returns
     end,
     pos = {x=1, y=5},
     loc_vars = function(self, info_queue, card)
-        return { vars = { card.ability.extra.times_returned or 0, card.ability.extra.max_returns or 2 } }
+        return { vars = { card.ability.extra.times_returned or 0, card.ability.extra.max_returns } }
     end,
     calculate = function(self, card, context)
+        -- local whisper_of_rending = false
+        -- for _, joker in ipairs(G.jokers.cards) do
+        --     if joker.config.center_key == "j_fm_whisper_of_rending" then
+        --         whisper_of_rending = true
+        --         card.ability.extra.max_returns = 3
+        --     else
+        --         whisper_of_rending = false
+        --         card.ability.extra.max_returns = 2
+        --     end
+        -- end
         if context.cardarea == G.play and context.main_scoring then
             for i, playedCard in ipairs(context.scoring_hand) do
                 if playedCard == card then
@@ -180,10 +190,10 @@ SMODS.Enhancement {
         name = "Stasis Crystal",
         text = {
             "{C:spades}STASIS{}",
-            "Scores {C:mult}+3{} Mult.",
+            "Scores {C:mult}+3{} Mult",
             "Each {C:spades}Freeze{} card scored adds",
-            "{C:mult}+5{} Mult to this card.",
-            "Destroyed after {C:attention}3{} played hands.",
+            "{C:mult}+5{} Mult to this card",
+            "Destroyed after {C:attention}3{} played hands",
             "{C:inactive}({C:mult}#1#{C:inactive} hands left)",
             "{C:inactive}(Currently: {C:mult}+#2#{C:inactive} Mult)"
         }

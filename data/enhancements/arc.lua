@@ -22,7 +22,7 @@ SMODS.Enhancement {
         return { vars = { card.ability.extra.hands_seen } }
     end,
     calculate = function(self, card, context)
-        if context.cardarea == G.hand and context.after and not context.end_of_round
+        if context.cardarea == G.hand and context.main_scoring and not context.before and not context.end_of_round
             and card.ability.extra.hands_seen < 1 then
             card.ability.extra.hands_seen = card.ability.extra.hands_seen + 1
             card_eval_status_text(card, 'extra', nil, nil, nil, {

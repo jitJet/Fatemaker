@@ -154,7 +154,7 @@ SMODS.Consumable {
         text = {
             "Select up to 3 cards, discard them and draw",
             "cards equal to the amount of cards discarded",
-            "All cards drawn this way become Volatile."
+            "All cards drawn this way become Volatile"
         }
     },
     atlas = 'Consumables',
@@ -239,9 +239,9 @@ SMODS.Consumable {
         name = "Ambush",
         text = {
             "When used, discard the top 5 cards",
-            "in hand and draw 5 new cards.",
+            "in hand and draw 5 new cards",
             "Cards drawn this way will be the",
-            "highest rank cards avalible in the deck."
+            "highest rank cards avalible in the deck"
         }
     },
     atlas = 'Consumables',
@@ -278,9 +278,9 @@ SMODS.Consumable {
         text = {
             "Grant +1 hand size and +25",
             "chips to 1 selected card",
-            "per amount of hands played.",
+            "per amount of hands played",
             "Draw cards equal to the amount",
-            "of hand size gained this way."
+            "of hand size gained this way"
         }
     },
     atlas = 'Consumables',

@@ -432,7 +432,7 @@ SMODS.Sticker {
                     end
      
                     for i = 1, math.min(DETONATE_AMOUNT, #destroyable_cards) do
-                        local idx = math.random(1, #destroyable_cards)
+                        local idx = pseudorandom(1, #destroyable_cards)
                         destroyable_cards[idx]:start_dissolve()
                         table.remove(destroyable_cards, idx)
                     end
@@ -484,7 +484,7 @@ SMODS.Consumable {
             
             -- Destroy random joker
             if #G.jokers.cards > 0 then
-                local random_joker = G.jokers.cards[math.random(1, #G.jokers.cards)]
+                local random_joker = pseudorandom_element(G.jokers.cards, pseudoseed('jokers'))
                 random_joker:start_dissolve()
             end
 
@@ -598,7 +598,7 @@ SMODS.Consumable {
         
             -- Destroy random joker
             if #G.jokers.cards > 0 then
-                local random_joker = G.jokers.cards[math.random(1, #G.jokers.cards)]
+                local random_joker = pseudorandom_element(G.jokers.cards, pseudoseed('jokers'))
                 random_joker:start_dissolve()
             end
 

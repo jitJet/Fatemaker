@@ -60,7 +60,7 @@ SMODS.Enhancement {
         text = {
             "{C:attention}SOLAR{}",
             "Scoring this card will increase",
-            "{C:attention}Scorch{} stacks.",
+            "{C:attention}Scorch{} stacks",
             "At {C:attention}3{} stacks, {C:attention}it will ignite{},",
             "destroying it but granting {X:mult,C:white}X3{} Mult",
             "{C:inactive}(Currently {C:red}#1#{C:inactive} Stacks)"
@@ -219,9 +219,10 @@ SMODS.Enhancement {
                 end
             end
             if cure_count > 0 then
-                card.ability.extra.chips = card.ability.extra.chips + (30 * cure_count)
+                local chips = (30 * cure_count)
+                card.ability.extra.chips = 0
                 return {
-                    chips = card.ability.extra.chips,
+                    chips = chips,
                     message = "Cured!",
                     -- sound = "fm_cure",
                     colour = G.C.ORANGE

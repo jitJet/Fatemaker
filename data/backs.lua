@@ -12,17 +12,23 @@ SMODS.Back {
     pos = { x = 1, y = 3 },
     unlocked = true,
     apply = function(self, back)
+        local tf = {
+            true,
+            true,
+            true,
+            false
+        }
+        local enhancements = {
+            G.P_CENTERS.m_fm_radiant,-- Solar
+            G.P_CENTERS.m_fm_scorch,
+            G.P_CENTERS.m_fm_restoration,
+            G.P_CENTERS.m_fm_cure
+        }
         G.E_MANAGER:add_event(Event({
             func = function()
                 for k, v in pairs(G.playing_cards) do
-                    if v.base.suit == 'Clubs' then
-                        v:set_ability(G.P_CENTERS.m_fm_scorch)
-                    end
-                    if v.base.suit == 'Hearts' then
-                        v:set_ability(G.P_CENTERS.m_fm_radiant)
-                    end
-                    if v.base.suit == 'Spades' then
-                        v:set_ability(G.P_CENTERS.m_fm_restoration)
+                    if pseudorandom_element(tf, pseudoseed('Idk')) then
+                        v:set_ability(pseudorandom_element(enhancements, pseudoseed('Break Through')))
                     end
                 end
                 return true
@@ -44,17 +50,23 @@ SMODS.Back {
     pos = { x = 1, y = 3 },
     unlocked = true,
     apply = function(self, back)
+        local tf = {
+            true,
+            true,
+            true,
+            false
+        }
+        local enhancements = {
+            G.P_CENTERS.m_fm_overshield, -- Void
+            G.P_CENTERS.m_fm_volatile,
+            G.P_CENTERS.m_fm_devour,
+            G.P_CENTERS.m_fm_suppress
+        }
         G.E_MANAGER:add_event(Event({
             func = function()
                 for k, v in pairs(G.playing_cards) do
-                    if v.base.suit == 'Clubs' then
-                        v:set_ability(G.P_CENTERS.m_fm_overshield)
-                    end
-                    if v.base.suit == 'Hearts' then
-                        v:set_ability(G.P_CENTERS.m_fm_volatile)
-                    end
-                    if v.base.suit == 'Spades' then
-                        v:set_ability(G.P_CENTERS.m_fm_devour)
+                    if pseudorandom_element(tf, pseudoseed('Idk')) then
+                        v:set_ability(pseudorandom_element(enhancements, pseudoseed('Break Through')))
                     end
                 end
                 return true
@@ -76,17 +88,23 @@ SMODS.Back {
     pos = { x = 1, y = 3 },
     unlocked = true,
     apply = function(self, back)
+        local tf = {
+            true,
+            true,
+            true,
+            false
+        }
+        local enhancements = {
+            G.P_CENTERS.m_fm_amplified, -- Arc
+            G.P_CENTERS.m_fm_jolt,
+            G.P_CENTERS.m_fm_blinded,
+            G.P_CENTERS.m_fm_bolt_charge
+        }
         G.E_MANAGER:add_event(Event({
             func = function()
                 for k, v in pairs(G.playing_cards) do
-                    if v.base.suit == 'Clubs' then
-                        v:set_ability(G.P_CENTERS.m_fm_amplified)
-                    end
-                    if v.base.suit == 'Hearts' then
-                        v:set_ability(G.P_CENTERS.m_fm_jolt)
-                    end
-                    if v.base.suit == 'Spades' then
-                        v:set_ability(G.P_CENTERS.m_fm_blinded)
+                    if pseudorandom_element(tf, pseudoseed('Idk')) then
+                        v:set_ability(pseudorandom_element(enhancements, pseudoseed('Break Through')))
                     end
                 end
                 return true
@@ -107,17 +125,23 @@ SMODS.Back {
     pos = { x = 1, y = 3 },
     unlocked = true,
     apply = function(self, back)
+        local tf = {
+            true,
+            true,
+            true,
+            false
+        }
+        local enhancements = {
+            G.P_CENTERS.m_fm_shatter, -- Stasis
+            G.P_CENTERS.m_fm_freeze,
+            G.P_CENTERS.m_fm_slow,
+            G.P_CENTERS.m_fm_stasis_crystal
+        }
         G.E_MANAGER:add_event(Event({
             func = function()
                 for k, v in pairs(G.playing_cards) do
-                    if v.base.suit == 'Clubs' then
-                        v:set_ability(G.P_CENTERS.m_fm_shatter)
-                    end
-                    if v.base.suit == 'Hearts' then
-                        v:set_ability(G.P_CENTERS.m_fm_freeze)
-                    end
-                    if v.base.suit == 'Spades' then
-                        v:set_ability(G.P_CENTERS.m_fm_slow)
+                    if pseudorandom_element(tf, pseudoseed('Idk')) then
+                        v:set_ability(pseudorandom_element(enhancements, pseudoseed('Break Through')))
                     end
                 end
                 return true
@@ -140,17 +164,23 @@ SMODS.Back {
     pos = { x = 1, y = 3 },
     unlocked = true,
     apply = function(self, back)
+        local tf = {
+            true,
+            true,
+            true,
+            false
+        }
+        local enhancements = {
+            G.P_CENTERS.m_fm_wovenmail, -- Strand
+            G.P_CENTERS.m_fm_tangle,
+            G.P_CENTERS.m_fm_unravel,
+            G.P_CENTERS.m_fm_suspend
+        }
         G.E_MANAGER:add_event(Event({
             func = function()
                 for k, v in pairs(G.playing_cards) do
-                    if v.base.suit == 'Clubs' then
-                        v:set_ability(G.P_CENTERS.m_fm_wovenmail)
-                    end
-                    if v.base.suit == 'Hearts' then
-                        v:set_ability(G.P_CENTERS.m_fm_tangle)
-                    end
-                    if v.base.suit == 'Spades' then
-                        v:set_ability(G.P_CENTERS.m_fm_unravel)
+                    if pseudorandom_element(tf, pseudoseed('Idk')) then
+                        v:set_ability(pseudorandom_element(enhancements, pseudoseed('Break Through')))
                     end
                 end
                 return true
@@ -172,17 +202,23 @@ SMODS.Back {
     pos = { x = 1, y = 3 },
     unlocked = true,
     apply = function(self, back)
+        local tf = {
+            true,
+            true,
+            true,
+            false
+        }
+        local enhancements = {
+            G.P_CENTERS.m_fm_resonant, -- Resonant
+            G.P_CENTERS.m_fm_finalized,
+            G.P_CENTERS.m_fm_dissected,
+            G.P_CENTERS.m_fm_rooted
+        }
         G.E_MANAGER:add_event(Event({
             func = function()
                 for k, v in pairs(G.playing_cards) do
-                    if v.base.suit == 'Clubs' then
-                        v:set_ability(G.P_CENTERS.m_fm_resonant)
-                    end
-                    if v.base.suit == 'Hearts' then
-                        v:set_ability(G.P_CENTERS.m_fm_finalized)
-                    end
-                    if v.base.suit == 'Spades' then
-                        v:set_ability(G.P_CENTERS.m_fm_dissected)
+                    if pseudorandom_element(tf, pseudoseed('Idk')) then
+                        v:set_ability(pseudorandom_element(enhancements, pseudoseed('Resonant')))
                     end
                 end
                 return true
@@ -205,6 +241,7 @@ SMODS.Back {
     unlocked = true,
     apply = function(self, back)
         local tf = {
+            true,
             true,
             false
         }

@@ -50,7 +50,7 @@ SMODS.Joker{
     loc_txt = {
         name = "Well of Radiance",
         text = {
-            "Charge with 5 {C:attention}Solar{} cards.",
+            "Charge with 5 {C:attention}Solar{} cards",
             "Once charged and once per ante,",
             "win a Blind to turn your",
             "hand into half {C:attention}Radiant{} and {C:attention}Restoration{} cards",
@@ -167,10 +167,10 @@ SMODS.Joker{
     loc_txt = {
         name = "Golden Gun",
         text = {
-            "Charge with 5 {C:attention}Solar{} cards.",
+            "Charge with 5 {C:attention}Solar{} cards",
             "Once charged, next hand played sets",
             "number of retriggers depending on number of",
-            "{C:attention}Solar{} cards played.",
+            "{C:attention}Solar{} cards played",
             "Then, next hand with {C:attention}Solar{} cards",
             "will retrigger them that many times",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
@@ -294,7 +294,7 @@ SMODS.Joker{
     loc_txt = {
         name = "Thundercrash",
         text = {
-            "Charge with 5 {C:blue}Arc{} cards.",
+            "Charge with 5 {C:blue}Arc{} cards",
             "When charged and a {C:attention}#1#{} is played,",
             "highest card gains {C:blue}50 times{} the chips and",
             "{C:blue}jolts{} unenhanced cards",
@@ -319,7 +319,7 @@ SMODS.Joker{
     },
     init = function(self)
         local suits = SMODS.Suit.obj_buffer
-        self.ability.extra.target_suit = suits[math.random(#suits)]
+        self.ability.extra.target_suit = pseudorandom_element(suits, pseudoseed("CHARGE!"))
     end,
     loc_vars = function(self, info_queue, card)
         return { vars = { 
@@ -331,7 +331,7 @@ SMODS.Joker{
     calculate = function(self, card, context)
         if context.end_of_round then
             local suits = SMODS.Suit.obj_buffer
-            card.ability.extra.target_suit = suits[math.random(#suits)]
+            card.ability.extra.target_suit = pseudorandom_element(suits, pseudoseed("CHARGE!"))
         end
 
         if context.joker_main then
@@ -426,8 +426,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Gathering Storm",
         text = {
-            "Charge with 5 {C:blue}Arc{} cards.",
-            "When charged, 3 cards become {C:blue}Amplified{}.",
+            "Charge with 5 {C:blue}Arc{} cards",
+            "When charged, 3 cards become {C:blue}Amplified{}",
             "Playing {C:blue}Amplified{} cards grants {C:red}+5{} Mult",
             "per card. Continues until a hand without",
             "{C:blue}Amplified{} cards is played",
@@ -524,7 +524,7 @@ SMODS.Joker{
             end
     
             for i = 1, math.min(3, #normal_cards) do
-                local card_index = math.random(#normal_cards)
+                local card_index = pseudorandom("test", 1, #normal_cards)
                 local target_card = normal_cards[card_index]
                 SMODS.calculate_effect({
                     message = "Amplified!",
@@ -551,12 +551,12 @@ SMODS.Joker{
     loc_txt = {
         name = "Ward of Dawn",
         text = {
-            "Charge with 5 {C:purple}Void{} cards.",
+            "Charge with 5 {C:purple}Void{} cards",
             "When charged, grants {C:mult}+5{} Mult per",
             "{C:purple}Void{} card scored while an",
-            "{C:purple}Overshield{} card is in hand.",
+            "{C:purple}Overshield{} card is in hand",
             "If your hand has 3 or more {C:purple}Overshield{} cards,",
-            "{C:attention}double{} this bonus.",
+            "{C:attention}double{} this bonus",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -669,9 +669,9 @@ SMODS.Sticker {
         name = "Void Anchor",
         text = { 
             "Adjacent cards to this card",
-            "become {C:purple}Volatile{}.",
+            "become {C:purple}Volatile{}",
             "After 3 hands, this card will",
-            "be {C:mult}destroyed{}.",
+            "be {C:mult}destroyed{}",
             "{C:inactive}({C:mult}#1#{C:inactive} uses left)"
         }
     },
@@ -734,11 +734,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Shadowshot",
         text = {
-            "Charge with 5 {C:purple}Void{} cards.",
+            "Charge with 5 {C:purple}Void{} cards",
             "When charged, a random card gains a",
             "{C:purple}Void Anchor{}. Adjacent cards to it become",
             "{C:purple}Volatile{}. After 3 hands,",
-            "the anchored card will be destroyed.",
+            "the anchored card will be destroyed",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -833,10 +833,10 @@ SMODS.Joker{
     loc_txt = {
         name = "Winter's Wrath",
         text = {
-            "Charge with 5 {C:spades}Stasis{} cards.",
+            "Charge with 5 {C:spades}Stasis{} cards",
             "When charged, {C:attention}#1#{} will {C:spades}Slow{}",
-            "all played cards and {C:spades}Freeze{} all played {C:spades}Slow{} cards.",
-            "{C:attention}#2#{} will {C:spades}Shatter{} all played {C:spades}Freeze{} cards.",
+            "all played cards and {C:spades}Freeze{} all played {C:spades}Slow{} cards",
+            "{C:attention}#2#{} will {C:spades}Shatter{} all played {C:spades}Freeze{} cards",
             "{C:inactive}(Currently: {C:attention}#3#{C:inactive})"
         }
     },
@@ -881,11 +881,11 @@ SMODS.Joker{
                 "Full House"
             }
             
-            local freeze_idx = math.random(#hand_pool)
+            local freeze_idx = pseudorandom("test", 1, #hand_pool)
             local freeze_hand = hand_pool[freeze_idx]
             table.remove(hand_pool, freeze_idx)
             
-            local shatter_idx = math.random(#hand_pool)
+            local shatter_idx = pseudorandom("test", 1, #hand_pool)
             local shatter_hand = hand_pool[shatter_idx]
             
             card.ability.extra.freeze_hand = freeze_hand
@@ -990,11 +990,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Glacial Quake",
         text = {
-            "Charge with 5 {C:spades}Stasis{} cards.",
+            "Charge with 5 {C:spades}Stasis{} cards",
             "Places 3 {C:spades}Stasis Crystals{}",
             "in your hand. They gain {C:mult}+5{} Mult",
             "per {C:spades}Freeze{} card played before",
-            "destroying themselves in 3 hands.",
+            "destroying themselves in 3 hands",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -1080,11 +1080,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Needlestorm",
         text = {
-            "Charge with 5 {C:green}Strand{} cards.",
+            "Charge with 5 {C:green}Strand{} cards",
             "When charged, grants {C:green}Unravel{}",
-            "to 5 random cards in hand.",
+            "to 5 random cards in hand",
             "Each card starts with Threads",
-            "equal to its rank.",
+            "equal to its rank",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -1151,7 +1151,7 @@ SMODS.Joker{
             end
     
             for i = 1, math.min(5, #normal_cards) do
-                local card_idx = math.random(#normal_cards)
+                local card_idx = pseudorandom("test", 1, #normal_cards)
                 local target_card = normal_cards[card_idx]
                 local thread_count = target_card:get_id()
     
@@ -1166,6 +1166,18 @@ SMODS.Joker{
                         target_card:flip()
                         target_card:set_ability(G.P_CENTERS.m_fm_unravel)
                         target_card.ability.extra.threads = thread_count
+                        target_card.ability.extra.threads_per_hand = 1
+                        for _, joker in ipairs(G.jokers.cards) do
+                            if joker.config.center_key == "j_fm_thread_of_evolution" then
+                                target_card.ability.extra.threads_per_hand = 2
+                                for i = #G.deck.cards, 1, -1 do
+                                    if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_unravel then
+                                        G.deck.cards[i].ability.extra.threads_per_hand = 2
+                                    end
+                                end
+                                break
+                            end
+                        end
                         target_card:flip()
                         return true
                     end
@@ -1185,11 +1197,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Bladefury",
         text = {
-            "Charge with 5 {C:green}Strand{} cards.",
+            "Charge with 5 {C:green}Strand{} cards",
             "When charged, playing a {C:attention}Pair{}",
             "or a {C:attention}High Card{} will",
             "slice them into equivalent pairs,",
-            "cloning them but with halved ranks.",
+            "cloning them but with halved ranks",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -1322,7 +1334,7 @@ SMODS.Sticker {
         -- Check for Splinter of Corruption Joker
         local increment = 10
         for _, joker in ipairs(G.jokers.cards) do
-            if joker.config and joker.config.center_key == "j_fm_splinter_of_corruption" then
+            if joker.config.center_key == "j_fm_splinter_of_corruption" then
                 increment = 20
                 break
             end
@@ -1356,12 +1368,12 @@ SMODS.Joker{
     loc_txt = {
         name = "Witness's Shatter",
         text = {
-            "Charge with 5 {C:black}Resonance{} cards.",
+            "Charge with 5 {C:black}Resonance{} cards",
             "When charged, {C:attention}#1#{} random cards",
             "become {C:black}Catatonic{}, making them {C:mult}unplayable{}",
             "and {C:mult}undiscardable{}, but grants incremental {C:red}Mult{}",
             "per hand played",
-            "until the round ends.",
+            "until the round ends",
             "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
         }
     },
@@ -1396,7 +1408,7 @@ SMODS.Joker{
     end,
     calculate = function(self, card, context)
         if context.end_of_round then
-            card.ability.extra.catatonic_count = math.random(1, 3)
+            card.ability.extra.catatonic_count = pseudorandom("catatonic", 1, 3)
         end
         
         if context.joker_main then
@@ -1445,7 +1457,7 @@ SMODS.Joker{
             for i = 1, cards_to_catatonic do
                 if #available_cards > 0 then
                     -- Select random card
-                    local card_idx = math.random(#available_cards)
+                    local card_idx = pseudorandom("test", 1, #available_cards)
                     local target_card = available_cards[card_idx]
                     
                     -- Apply catatonic effect with visual feedback
@@ -1480,11 +1492,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Resonate Whirlwind",
         text = {
-            "Charge with 5 Resonance cards.",
+            "Charge with 5 Resonance cards",
             "When charged, all cards except those of",
             "suit {C:attention}#1#{} are subjected to random",
             "rank changes. Surviving cards gain",
-            "{C:black}Resonance{} enhancements.",
+            "{C:black}Resonance{} enhancements",
             "{C:inactive}(Currently: {C:attention}#2#{C:inactive})"
         }
     },
@@ -1574,7 +1586,7 @@ SMODS.Joker{
                     G.P_CENTERS.m_fm_rooted
                 }
                 
-                local enhancement = enhancements[math.random(#enhancements)]
+                local enhancement = pseudorandom_element(enhancements, pseudoseed('enhancements'))
                 
                 G.E_MANAGER:add_event(Event({
                     trigger = "before",
@@ -1597,7 +1609,7 @@ SMODS.Joker{
             end
             
             for _, unprotectedCard in ipairs(unprotected_cards) do
-                local rank_change = math.random(-3, 3)
+                local rank_change = pseudorandom("test", -3, 3)
                 if rank_change == 0 then rank_change = 1 end
                 
                 G.E_MANAGER:add_event(Event({
@@ -1665,11 +1677,11 @@ SMODS.Joker{
     loc_txt = {
         name = "Transcendence",
         text = {
-            "Charge with 5 {X:dark_edition,C:white}Prismatic{} cards.",
+            "Charge with 5 {X:dark_edition,C:white}Prismatic{} cards",
             "When charged, the next scoring hand will",
             "convert all {C:attention}Light{} cards to {C:darkgray}Dark{} cards and",
             "all {C:darkgray}Dark{} cards to {C:attention}Light{} cards,",
-            "then score again with the converted cards.",
+            "then score again with the converted cards",
             "{C:inactive}(Currently: {C:attention}#1#{C:inactive})"
         }
     },
@@ -1776,7 +1788,7 @@ SMODS.Joker{
                         
                         -- Convert Light to Dark
                         if center_in_list(scoringCard.config.center, light_centers) then
-                            new_center = dark_centers[math.random(#dark_centers)]
+                            new_center = pseudorandom_element(dark_centers, pseudoseed('enhancements'))
                             
                             G.E_MANAGER:add_event(Event({
                                 trigger = "immediate",
@@ -1796,7 +1808,7 @@ SMODS.Joker{
                             
                         -- Convert Dark to Light
                         elseif center_in_list(scoringCard.config.center, dark_centers) then
-                            new_center = light_centers[math.random(#light_centers)]
+                            new_center = pseudorandom_element(light_centers, pseudoseed('enhancements'))
                             
                             G.E_MANAGER:add_event(Event({
                                 trigger = "immediate",
@@ -1977,7 +1989,7 @@ SMODS.Joker{
                 
                 -- Apply edition if we have eligible cards
                 if #eligible_cards > 0 then
-                    local target_card = eligible_cards[math.random(#eligible_cards)]
+                    local target_card = pseudorandom_element(eligible_cards, pseudoseed('enhancements'))
                     local edition_center = subclass_to_edition[card.ability.extra.current_subclass]
                     
                     -- Play effects
@@ -2390,7 +2402,7 @@ SMODS.Joker{
         name = "Echo of Starvation",
         text = {
             "Whenever a {C:purple}Void Super{} Joker is fully charged,",
-            "grant {C:purple}Devour{} to a random unenhanced card in hand."
+            "grant {C:purple}Devour{} to a random unenhanced card in hand"
         }
     },
     atlas = 'Jokers',
@@ -2417,7 +2429,7 @@ SMODS.Joker{
                         end
 
                         if #unenhanced > 0 then
-                            local target = unenhanced[math.random(#unenhanced)]
+                            local target = pseudorandom_element(unenhanced, pseudoseed('enhancements'))
                             SMODS.calculate_effect({
                                 message = "Devoured!",
                                 sound = "fm_void_fragment",
@@ -2455,7 +2467,7 @@ SMODS.Joker{
                     end
 
                     if #unenhanced > 0 then
-                        local target = unenhanced[math.random(#unenhanced)]
+                        local target = pseudorandom_element(unenhanced, pseudoseed('enhancements'))
                         SMODS.calculate_effect({
                             message = "Devoured!",
                             sound = "fm_void_fragment",
@@ -2515,7 +2527,7 @@ SMODS.Joker{
                 end
 
                 if #solar_supers > 0 then
-                    local target_joker = solar_supers[math.random(#solar_supers)]
+                    local target_joker = pseudorandom_element(solar_supers, pseudoseed('solar supers'))
                     G.E_MANAGER:add_event(Event({
                         func = function()
                             target_joker.ability.extra.charge = 5
@@ -2694,7 +2706,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Ember of Torches",
         text = {
-            "Scored {C:attention{}Restoration{} cards become {C:attention}Radiant{} and gain a rank", -- Works! Very simple but I like it
+            "Scored {C:attention{}Restoration{} cards", 
+            "become {C:attention}Radiant{} and gain a rank", -- Works! Very simple but I like it
         }
     },
     atlas = 'Jokers',
@@ -2789,7 +2802,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Spark of Brilliance",
         text = {
-            "Scored {C:blue}Blinded{} cards {C:blue}blind{} all unenhanced cards scored next to them", -- Works!! Remember to fix the blinded cards not being flipped when drawn!
+            "Scored {C:blue}Blinded{} cards {C:blue}blind{} all", 
+            "unenhanced cards scored next to them" -- Works!! Remember to fix the blinded cards not being flipped when drawn!
         }
     },
     atlas = 'Jokers',
@@ -2880,7 +2894,8 @@ SMODS.Joker{
         name = "Spark of Amplitude",
         text = {
             "Priming 3 or more {C:blue}Amplified{} cards in one hand",
-            "will grant extra charges depending on the number of {C:blue}Amplified{} cards primed",
+            "will grant extra charges depending on the", 
+            "number of {C:blue}Amplified{} cards primed",
             "to one random {C:blue}Arc Super{} card in hand",
         }
     },
@@ -2894,12 +2909,12 @@ SMODS.Joker{
     discovered = true,
     pos = {x=2, y=5},
     calculate = function(self, card, context)
-        if context.before then
-            -- Count primed Amplified cards in the scoring hand
+        if context.after then
+            -- Count primed Amplified cards in the hand
             local primed_amplified = 0
             for _, handCard in ipairs(G.hand.cards) do
                 if handCard.config.center == G.P_CENTERS.m_fm_amplified and
-                   handCard.ability.extra.hands_seen >= 1 then
+                handCard.ability.extra.hands_seen >= 1 then
                     primed_amplified = primed_amplified + 1
                 end
             end
@@ -2914,7 +2929,7 @@ SMODS.Joker{
                 end
 
                 if #arc_supers > 0 then
-                    local target_joker = arc_supers[math.random(#arc_supers)]
+                    local target_joker = pseudorandom_element(arc_supers, pseudoseed('arc supers'))
                     G.E_MANAGER:add_event(Event({
                         func = function()
                             target_joker.ability.extra.charge = math.min(5, (target_joker.ability.extra.charge or 0) + primed_amplified)
@@ -2941,7 +2956,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Spark of Beacons",
         text = {
-            "Scored {C:blue}Amplified{} cards {C:blue}Amplifies{} and primes an unenhanced card in hand", -- Works!
+            "Scored {C:blue}Amplified{} cards {C:blue}Amplifies{}",
+            "and primes an unenhanced card in hand"
         }
     },
     atlas = 'Jokers',
@@ -2955,24 +2971,19 @@ SMODS.Joker{
     pos = {x=3, y=5},
     calculate = function(self, card, context)
         if context.after then
-            for j, scoredCard in ipairs(context.scoring_hand) do
+            for _, scoredCard in ipairs(context.scoring_hand) do
                 if SMODS.has_enhancement(scoredCard, "m_fm_amplified") then
-                    local _cards = {}
-                    for _, playing_card in ipairs(G.hand.cards) do
-                        _cards[#_cards + 1] = playing_card
-                    end
-                    for i = 1, 1 do
-                        if G.hand.cards[i] then
-                            while true do
-                                local selected_card, card_index = pseudorandom_element(_cards, pseudoseed('Balalalala'))
-                                if selected_card.ability.set ~= "Enhanced" then
-                                    selected_card:flip()
-                                    selected_card:set_ability(G.P_CENTERS.m_fm_amplified)
-                                    selected_card:flip()
-                                    break
-                                end
-                            end
+                    local unenhancedCards = {}
+                    for _, handCard in ipairs(G.hand.cards) do
+                        if handCard.ability.set ~= "Enhanced" then
+                            table.insert(unenhancedCards, handCard)
                         end
+                    end
+                    if #unenhancedCards > 0 then
+                        local selected_card = pseudorandom_element(unenhancedCards, pseudoseed('Balalalala'))
+                        selected_card:flip()
+                        selected_card:set_ability(G.P_CENTERS.m_fm_amplified)
+                        selected_card:flip()
                     end
                 end
             end
@@ -3025,9 +3036,9 @@ SMODS.Joker{
     loc_txt = {
         name = "Spark of Feedback",
         text = {
-            "If your hand will score less chips than your previous hand", -- Works!!
-            "double chips of the this hand",
-            "(Can't trigger on hand 1)",
+            "Gain {X:blue,C:white}X2{} Chips if you",
+            "scored less than your previous hand",
+            "{C:inactive}(Last score: {C:attention}#1#{C:inactive})"
         }
     },
     atlas = 'Jokers',
@@ -3044,6 +3055,13 @@ SMODS.Joker{
             lastHand = 0
         } 
     },
+    loc_vars = function(self, info_queue, card)
+        return { 
+            vars = { 
+                card.ability.extra.lastHand
+            } 
+        }
+    end,
     calculate = function(self, card, context)
         if context.final_scoring_step then
             if hand_chips*mult < card.ability.extra.lastHand then
@@ -3126,7 +3144,7 @@ SMODS.Joker{
                     end
 
                     if #stasis_supers > 0 then
-                        local target_joker = stasis_supers[math.random(#stasis_supers)]
+                        local target_joker = pseudorandom_element(stasis_supers, pseudoseed('stasis supers'))
                         G.E_MANAGER:add_event(Event({
                             func = function()
                                 target_joker.ability.extra.charge = math.min(5, (target_joker.ability.extra.charge or 0) + shatter_count)
@@ -3171,9 +3189,7 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=1, y=6},
-    calculate = function(self, card, context)
-    -- Find a way to reset 3 returns back to 2 if the fragment is not active
-    -- Always ensure all Freeze cards have at least 3 returns while this Joker is active
+    add_to_deck = function(self, card, from_debuff)
         for _, handCard in ipairs(G.hand.cards) do
             if handCard.config.center == G.P_CENTERS.m_fm_freeze then
                 if not handCard.ability.extra.max_returns or handCard.ability.extra.max_returns < 3 then
@@ -3181,6 +3197,40 @@ SMODS.Joker{
                 end
             end
         end
+        for i = #G.deck.cards, 1, -1 do
+            if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_freeze then
+                if not G.deck.cards[i].ability.extra.max_returns or G.deck.cards[i].ability.extra.max_returns < 3 then
+                    G.deck.cards[i].ability.extra.max_returns = 3
+                end
+            end
+        end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        for _, handCard in ipairs(G.hand.cards) do
+            if handCard.config.center == G.P_CENTERS.m_fm_freeze then
+                if not handCard.ability.extra.max_returns or handCard.ability.extra.max_returns > 2 then
+                    handCard.ability.extra.max_returns = 2
+                end
+            end
+        end
+        for i = #G.deck.cards, 1, -1 do
+            if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_freeze then
+                if not G.deck.cards[i].ability.extra.max_returns or G.deck.cards[i].ability.extra.max_returns > 2 then
+                    G.deck.cards[i].ability.extra.max_returns = 2
+                end
+            end
+        end
+    end,
+    calculate = function(self, card, context)
+    -- Find a way to reset 3 returns back to 2 if the fragment is not active
+    -- Always ensure all Freeze cards have at least 3 returns while this Joker is active
+        -- for _, handCard in ipairs(G.hand.cards) do
+        --     if handCard.config.center == G.P_CENTERS.m_fm_freeze then
+        --         if not handCard.ability.extra.max_returns or handCard.ability.extra.max_returns < 3 then
+        --             handCard.ability.extra.max_returns = 3
+        --         end
+        --     end
+        -- end
 
         -- Grant bonus when a Freeze card uses its extra return
         if context.before then
@@ -3345,7 +3395,7 @@ SMODS.Joker{
                     end
                 end
                 if #unenhanced > 0 then
-                    local target = unenhanced[math.random(#unenhanced)]
+                    local target = pseudorandom_element(unenhanced, pseudoseed('unenhanced'))
                     G.E_MANAGER:add_event(Event({
                         func = function()
                             target:flip()
@@ -3508,13 +3558,15 @@ SMODS.Joker{
                     table.insert(unenhancedCards, handCard)
                 end
             end
-            if unenhancedCards then
-                for i, scoredCard in ipairs(context.scoring_hand) do
-                    if SMODS.has_enhancement(scoredCard, "m_fm_wovenmail") then
-                        local selectedCard = pseudorandom_element(unenhancedCards, pseudoseed('Balalalala'))
+            for i, scoredCard in ipairs(context.scoring_hand) do
+                if SMODS.has_enhancement(scoredCard, "m_fm_wovenmail") then
+                    if #unenhancedCards > 0 then
+                        local card_index = pseudorandom("ugh", 1, #unenhancedCards)
+                        local selectedCard = unenhancedCards[card_index]
                         selectedCard:flip()
                         selectedCard:set_ability(G.P_CENTERS.m_fm_tangle)
                         selectedCard:flip()
+                        table.remove(unenhancedCards, card_index)
                     end
                 end
             end
@@ -3557,7 +3609,7 @@ SMODS.Joker{
                     end
 
                     if #unenhanced > 0 then
-                        local target = unenhanced[math.random(#unenhanced)]
+                        local target = pseudorandom_element(unenhanced, pseudoseed('unenhanced'))
                         SMODS.calculate_effect({
                             message = "Warded!",
                             sound = "fm_strand_fragment",
@@ -3647,7 +3699,7 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=4, y=7},
-    calculate = function(self, card, context)
+    add_to_deck = function(self, card, from_debuff)
         for _, handCard in ipairs(G.hand.cards) do
             if handCard.config.center == G.P_CENTERS.m_fm_unravel then
                 handCard.ability.extra.threads_per_hand = 2
@@ -3658,6 +3710,21 @@ SMODS.Joker{
                 G.deck.cards[i].ability.extra.threads_per_hand = 2
             end
         end
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+        for _, handCard in ipairs(G.hand.cards) do
+            if handCard.config.center == G.P_CENTERS.m_fm_unravel then
+                handCard.ability.extra.threads_per_hand = 1
+            end
+        end
+        for i = #G.deck.cards, 1, -1 do
+            if G.deck.cards[i].config.center == G.P_CENTERS.m_fm_unravel then
+                G.deck.cards[i].ability.extra.threads_per_hand = 1
+            end
+        end
+    end,
+    calculate = function(self, card, context)
+
     end
 }
 
@@ -3680,7 +3747,7 @@ SMODS.Joker{
     discovered = true,
     pos = {x=5, y=7},
     calculate = function(self, card, context)
-        if context.before then
+        if context.after and context.scoring_hand  then
             if G.GAME.current_round.hands_left < 3 then
                 -- List of all possible Strand enhancements
                 local strand_enhancements = {
@@ -3690,13 +3757,30 @@ SMODS.Joker{
                     G.P_CENTERS.m_fm_suspend
                 }
                 -- Pick a random enhancement
-                local enhancement = strand_enhancements[math.random(#strand_enhancements)]
-                -- Create a new base card (e.g., random suit/rank)
-                local suit = pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('strand_suit'))
-                local rank = pseudorandom_element(SMODS.Rank.obj_buffer, pseudoseed('strand_rank'))
-                local new_card = Card(G.hand.T.x, G.hand.T.y - 5, G.CARD_W, G.CARD_H, {suit=suit, value=rank}, enhancement)
-                new_card:start_materialize({G.C.SECONDARY_SET.Enhanced})
-                draw_card(G.play, G.hand, 90, 'up', nil, new_card)
+                local enhancement = pseudorandom_element(strand_enhancements, pseudoseed('strand enhancements'))
+
+                -- Create a new Strand card with the chosen enhancement
+                local suit = pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('suit'))
+                local rank = pseudorandom_element(SMODS.Rank.obj_buffer, pseudoseed('rank'))
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'after',
+                    delay = 0.3,
+                    func = function()
+                        local new_card = Card(G.hand.T.x, G.hand.T.y, G.CARD_W, G.CARD_H, {suit=suit, value=rank}, enhancement)
+                        new_card.T.y = 6 - G.CARD_H
+                        SMODS.change_base(new_card, suit, rank)
+                        new_card:start_materialize({G.C.SECONDARY_SET.Enhanced})
+                        SMODS.calculate_effect({
+                            sound = "fm_strand_fragment",
+                            message = "!",
+                            colour = G.C.GREEN
+                        }, new_card)
+                        G.play:emplace(new_card)
+                        table.insert(G.playing_cards, new_card)
+                        draw_card(G.play, G.hand, 90, 'up', nil, new_card)
+                        return true
+                    end
+                }))
             end
         end
     end
@@ -3751,7 +3835,7 @@ SMODS.Joker{
                     end
                 end
                 if #resonance_supers > 0 then
-                    local target_joker = resonance_supers[math.random(#resonance_supers)]
+                    local target_joker = pseudorandom_element(resonance_supers, pseudoseed('resonance supers'))
                     local num_discarded = #G.hand.highlighted
                     G.E_MANAGER:add_event(Event({
                         func = function()
@@ -3779,10 +3863,10 @@ SMODS.Joker{
     loc_txt = {
         name = "Splinter of Convergence",
         text = {
-            "Scoring a hand consisting entirely of Resonance cards",
-            "will {C:attention}merge{} them all into a single card with a random Resonance enhancement",
-            "and a new rank totalling the cards' original ranks",
-            "({C:red}High Cards{} are not included)"
+            "Scoring a hand with only Resonance cards {C:attention}merges{} them",
+            "into one card with a random Resonance enhancement and new rank",
+            "totaling the original ranks", 
+            "{C:inactive}({C:red}High Cards{C:inactive} not included)"
         }
     },
     atlas = 'Jokers',
@@ -3796,7 +3880,6 @@ SMODS.Joker{
     pos = {x=1, y=8},
     calculate = function(self, card, context)
         if context.after and context.scoring_hand and context.scoring_name ~= "High Card" then
-            -- List of all possible Resonance enhancements
             local resonance_keys = {
                 "m_fm_resonant",
                 "m_fm_finalized",
@@ -3808,7 +3891,6 @@ SMODS.Joker{
                 if G.P_CENTERS[k] then table.insert(resonance_centers, G.P_CENTERS[k]) end
             end
 
-            -- Check if all cards in scoring_hand are Resonance cards
             local all_resonance = true
             local total_rank = 0
             for _, scoredCard in ipairs(context.scoring_hand) do
@@ -3827,13 +3909,11 @@ SMODS.Joker{
             end
 
             if all_resonance and #context.scoring_hand > 1 then
-                -- Clamp total_rank to max rank
                 local max_rank = SMODS.Rank.obj_buffer[#SMODS.Rank.obj_buffer]
                 if total_rank > SMODS.Ranks[max_rank].nominal then
                     total_rank = SMODS.Ranks[max_rank].nominal
                 end
 
-                -- Find the closest rank key for the total
                 local new_rank_key = SMODS.Rank.obj_buffer[1]
                 for _, k in ipairs(SMODS.Rank.obj_buffer) do
                     if SMODS.Ranks[k].nominal <= total_rank then
@@ -3843,17 +3923,13 @@ SMODS.Joker{
                     end
                 end
 
-                -- Pick a random Resonance enhancement
-                local enhancement = resonance_centers[math.random(#resonance_centers)]
-                -- Use the suit of the first card, or random if you prefer
-                local suit = context.scoring_hand[1].base and context.scoring_hand[1].base.suit or SMODS.Suit.obj_buffer[math.random(#SMODS.Suit.obj_buffer)]
+                local enhancement = pseudorandom_element(resonance_centers, pseudoseed('resonance centers'))
+                local suit = context.scoring_hand[1].base and context.scoring_hand[1].base.suit or pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('suit'))
 
-                -- Schedule the dissolve and spawn after scoring is fully resolved
                 G.E_MANAGER:add_event(Event({
                     trigger = 'after',
                     delay = 0.3,
                     func = function()
-                        -- Dissolve all scored cards, find a way to handle card destruction properly
                         for _, scoredCard in ipairs(context.scoring_hand) do
                             scoredCard:start_dissolve()
                         end
@@ -3867,16 +3943,10 @@ SMODS.Joker{
                             sound = "fm_resonance_fragment",
                             colour = G.C.BLACK
                         }, new_card)
-                        G.E_MANAGER:add_event(Event({
-                            trigger = 'after',
-                            delay = 1.0,
-                            func = function()
-                                G.play:emplace(new_card)
-                                table.insert(G.playing_cards, new_card)
-                                draw_card(G.play, G.hand, 90, 'up', nil)
-                                return true
-                            end
-                        }))
+
+                        G.play:emplace(new_card)
+                        table.insert(G.playing_cards, new_card)
+                        draw_card(G.play, G.hand, 90, 'up', nil)
                         return true
                     end
                 }))
@@ -4131,7 +4201,7 @@ SMODS.Joker{
         text = {
             "Every even numbered hand has base chips and mult doubled",
             "Volatile cards retrigger but the retrigger halves the Mult bonus",
-            "each Volatile card in hand gains the amount that was removed.",
+            "each Volatile card in hand gains the amount that was removed",
             "(First ability is calculated based on the number of hands before hitting play)",
         }
     },
@@ -4177,7 +4247,7 @@ SMODS.Joker{
             "After scoring, grant the first",
             "card scored one stack of Scorch",
             "If the played hand only contains solar buffed",
-            "cards, ignite any scored scorched cards.",
+            "cards, ignite any scored scorched cards",
         }
     },
     atlas = 'Jokers',
@@ -4226,7 +4296,7 @@ SMODS.Joker{
         text = {
             "Every unenhanced card scored is slowed,",
             "and every slowed card scored is frozen",
-            "When a Frozen card is played, retrigger it twice and shatter it.",
+            "When a Freeze card is played, retrigger it twice and Shatter it",
         }
     },
     atlas = 'Jokers',
@@ -4359,8 +4429,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Finality's Auger",
         text = {
-            "If all cards in hand are Resonance buffed,",
-            "grant all Scoring cards Resonant and",
+            "If all cards in hand contain Resonance enhancements,",
+            "grant all scoring cards Resonant and",
             "Dissect all debuffed cards in hand",
         }
     },
@@ -4405,8 +4475,8 @@ SMODS.Joker{
     loc_txt = {
         name = "Hard Light",
         text = {
-            "For every hand played, this Joker will cycle through Void, Solar and Arc.",
-            "Scoring respective elemental enhancements will grant +$5 for each scoring card.",
+            "For every hand played, this Joker will cycle through Void, Solar and Arc",
+            "Scoring respective elemental enhancements will grant +$5 for each scoring card",
             "(Currently: x)",
         }
     },
@@ -4462,7 +4532,7 @@ SMODS.Joker{
         name = "Icefall Mantle",
         text = {
             "All Shattered cards do not become destroyed on their effect being triggered",
-            "After scoring, any Shattered cards that have $0 are Slowed.",
+            "After scoring, any Shattered cards that have $0 are Slowed",
         }
     },
     atlas = 'Jokers',
