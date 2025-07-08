@@ -90,3 +90,21 @@ SMODS.Sound({
 SMODS.Sound({ vol = 0.6, key = "meditation_sweep", path = "meditation_sweep.ogg" })
 SMODS.Sound({ vol = 0.6, key = "meditation_explosion", path = "meditation_explosion.ogg" })
 SMODS.Sound({ vol = 0.6, key = "voidwalker", path = "voidwalker.ogg" })
+
+-- Fallen Crypt
+SMODS.Sound({
+    vol = 0.8,
+    pitch = 1,
+    key = "music_fallen_crypt",
+    path = "fallen_crypt.ogg",
+    select_music_track = function()
+        return (G.GAME and G.GAME.blind and G.GAME.blind.config.blind.key == "bl_fm_fallen_crypt")
+    end,
+})
+
+SMODS.Sound({ vol = 0.6, key = "fallen_crypt_scanner", path = "fallen_crypt_scanner.ogg" })
+SMODS.Sound({ vol = 0.6, key = "fallen_crypt_operator", path = "fallen_crypt_operator.ogg" })
+SMODS.Sound({ vol = 0.6, key = "fallen_crypt_suppressor", path = "fallen_crypt_suppressor.ogg" })
+SMODS.Sound({ vol = 0.6, key = "fallen_crypt_nuke_summon", path = "fallen_crypt_nuke_summon.ogg" })
+SMODS.Sound({ vol = 0.6, key = "fallen_crypt_sentinel", path = "fallen_crypt_sentinel.ogg" })
+SMODS.Sound({ vol = 0.6, key = "fallen_crypt_nuke_detonate", path = "fallen_crypt_nuke_detonate.ogg" })

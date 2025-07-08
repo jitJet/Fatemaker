@@ -3983,7 +3983,9 @@ SMODS.Joker{
     loc_txt = {
         name = "Splinter of Dread",
         text = {
-            ""
+            "Resonant cards {C:attention}retrigger twice{}",
+            "Each card drawn has a {C:green}#1# in #2#{} chance",
+            "to be {C:red}debuffed{}"
         }
     },
     atlas = 'Jokers',
@@ -3995,8 +3997,29 @@ SMODS.Joker{
     unlocked = true,
     discovered = true,
     pos = {x=3, y=8},
+    config = {
+        extra = {
+            debuff_active = false,
+            debuff_count = 0,
+            denom = 8 -- 1 in 8 chance
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return { vars = { G.GAME.probabilities.normal, card.ability.extra.denom or 8 } }
+    end,
     calculate = function(self, card, context)
+        -- Resonant cards retrigger twice
+        if context.cardarea == G.play and context.repetition and not context.repetition_only then
+            if SMODS.has_enhancement(context.other_card, "m_fm_resonant") then
+                return {
+                    repetitions = 2
+                }
+            end
+        end
 
+        if pseudorandom('splinter_of_dread') < (G.GAME.probabilities.normal / (card.ability.extra.denom or 8)) then
+
+        end
     end
 }
 
@@ -4213,7 +4236,7 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=3, y=2},
+    pos = {x=2, y=10},
     calculate = function(self, card, context)
         if context.modify_hand then
             if ((G.GAME.current_round.hands_left + 1) % 2)  == 0 then
@@ -4258,7 +4281,7 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=4, y=2},
+    pos = {x=9, y=9},
     calculate = function(self, card, context)
         local Solarr = 0
 
@@ -4307,7 +4330,7 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=6, y=2},
+    pos = {x=0, y=10},
     calculate = function(self, card, context)
         if context.joker_main then
             for i, scoredCard in ipairs(context.scoring_hand) do
@@ -4399,16 +4422,16 @@ SMODS.Joker{
                         scoredCard:flip()
                         SMODS.calculate_effect({
                             message = "Scorched!",
-                            -- sound = "fm_memento_scorch",
+                            sound = "fm_scorch",
                             colour = G.C.ORANGE
                         }, scoredCard)
                         if scoredCard.base.suit == "Spades" then
                             scoredCard.ability.extra.stacks = 3
-                            SMODS.calculate_effect({
-                                message = "Ignited!",
-                                -- sound = "fm_memento_ignite",
-                                colour = G.C.ORANGE
-                            }, scoredCard)
+                            -- SMODS.calculate_effect({
+                            --     message = "Ignited!",
+                            --     -- sound = "fm_memento_ignite",
+                            --     colour = G.C.ORANGE
+                            -- }, scoredCard)
                         end
                     end
                 end
@@ -4488,7 +4511,7 @@ SMODS.Joker{
     perishable_compat = true,
     unlocked = true,
     discovered = true,
-    pos = {x=8, y=1},
+    pos = {x=4, y=9}, -- Void position, arc position is x = 5 and solar position is x = 6
     config = {
         extra = {
             type = "Void"

@@ -81,3 +81,13 @@ for _, card in ipairs(G.jokers.cards) do
     end
 end
 '''
+
+[[patches]]
+[patches.pattern]
+target = '=[SMODS _ "src/utils.lua"]'
+pattern = "-- TARGET: add your own CardAreas for joker evaluation"
+position = 'before'
+match_indent = true
+payload = '''
+if Fatemaker and Fatemaker.mechanic_sprites then table.insert(t, Fatemaker.mechanic_sprites) end
+'''

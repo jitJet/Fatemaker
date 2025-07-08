@@ -7,6 +7,10 @@
 ----------------------------------------------
 ------------MOD CODE -------------------------
 
+Fatemaker = {}
+
+Fatemaker.config = SMODS.current_mod.config
+
 assert(SMODS.load_file("data/overrides.lua"))()
 assert(SMODS.load_file("data/atlases.lua"))()
 assert(SMODS.load_file("data/sounds.lua"))()
@@ -28,8 +32,9 @@ assert(SMODS.load_file("data/boosters/solar.lua"))()
 assert(SMODS.load_file("data/boosters/arc.lua"))()
 assert(SMODS.load_file("data/blinds/corrupted_wish.lua"))()
 assert(SMODS.load_file("data/blinds/machine_garden.lua"))()
+assert(SMODS.load_file("data/blinds/fallen_crypt.lua"))()
 assert(SMODS.load_file("data/blinds/reshaped_edge.lua"))()
-assert(SMODS.load_file("data/ui/loadout.lua"))()
-
+assert(SMODS.load_file("data/ui.lua"))()
+assert(SMODS.load_file("data/mechanics.lua"))()
 ----------------------------------------------
 ------------MOD CODE END----------------------
